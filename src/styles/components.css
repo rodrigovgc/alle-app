@@ -855,8 +855,12 @@ select.input { background-image: none; }
 /* the line above pinned buttons only when content continues underneath */
 .sheet.has-more .sheet__actions::before { box-shadow: 0 -1px 0 var(--border-subtle); }
 .sheet--popup .sheet__actions, .shuffle-body .sheet__actions { padding-top: var(--space-3); }
-/* Bottom sheets clip to their rounded top, so nothing pokes out while scrolling */
-.sheet { overflow: hidden; }
+/* Bottom sheets clip to their rounded top, so nothing pokes out while scrolling.
+   'clip' (not 'hidden'): a hidden box can still be scrolled by the browser, e.g. when
+   ticking a checkbox low in a list, which pushed the title out of sight on desktop. */
+.sheet, .sheet.sheet--popup { overflow: clip; }
+/* Pinned buttons in a desktop popup sit flush with its bottom edge, also in pickers */
+.sheet--popup .shuffle-body .sheet__actions { bottom: calc(var(--space-6) * -1); margin-bottom: calc(var(--space-6) * -1); }
 
 .menu__item:disabled { opacity: .38; cursor: default; }
 .menu__item:disabled:hover { background: transparent; }
