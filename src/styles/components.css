@@ -940,3 +940,31 @@ select.input { background-image: none; }
 
 /* Wider popup on desktop where long cards need room (Create with AI) */
 .sheet.sheet--popup.sheet--wide { width: min(760px, calc(100vw - 48px)); max-width: none; }
+
+/* Cookie question (Hotjar): a small dark card at the bottom, above the tab bar on phones */
+.consent {
+  position: fixed; z-index: calc(var(--z-sheet) - 1);
+  left: var(--gutter); right: var(--gutter);
+  bottom: calc(var(--size-tabbar) + max(env(safe-area-inset-bottom), var(--space-4)) + var(--space-3));
+  max-width: 400px; margin: 0 auto;
+  padding: var(--space-5);
+  border-radius: var(--radius-menu);
+  background: var(--cta-bg); color: var(--cta-fg);
+  box-shadow: var(--shadow-menu);
+  font-size: var(--font-size-small); line-height: 1.45;
+}
+.consent__text { margin: 0 0 var(--space-4); }
+.consent__text a { color: inherit; text-decoration: none; font-weight: var(--font-weight-semibold); }
+.consent__text a:hover { text-decoration: underline; }
+.consent__row { display: flex; gap: var(--space-2); }
+.consent__row button {
+  flex: 1; height: 40px; border: 0; border-radius: var(--radius-pill); cursor: pointer;
+  font: inherit; font-weight: var(--font-weight-semibold);
+}
+.consent__yes { background: var(--cta-fg); color: var(--cta-bg); }
+.consent__no { background: color-mix(in srgb, var(--cta-fg) 14%, transparent); color: var(--cta-fg); }
+@media (min-width: 1024px) {
+  .consent { left: auto; right: var(--space-6); bottom: var(--space-6); width: 380px; margin: 0; }
+}
+.account .sheet__text a { color: var(--text-primary); font-weight: var(--font-weight-semibold); text-decoration: none; }
+.account .sheet__text a:hover { text-decoration: underline; }

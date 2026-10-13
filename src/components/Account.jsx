@@ -6,6 +6,7 @@ import * as api from '../lib/api.js';
 import { supabase } from '../lib/supabase.js';
 import { getThemePref, setThemePref } from '../lib/theme.js';
 import { announceSaved } from '../lib/saved.js';
+import { getConsent, setConsent } from '../lib/hotjar.js';
 
 /*
  * Theme: appearance (light / dark / automatic) and deck colours. Both save on
@@ -42,6 +43,23 @@ export function ThemeSettings({ colorMode, onColorMode }) {
  * Account: name, email, password, sign out and a clearly separated delete
  * option. Shown in a sheet from the avatar menu.
  */
+/** Hotjar on or off. Same choice as the cookie question; turning it off reloads so it stops. */
+function UsageStats() {
+  const [value, setValue] = useState(() => (getConsent() === 'granted' ? 'granted' : 'denied'));
+  return (
+    <section className="account__group">
+      <h3 className="account__label" id="acc-stats">Help improve Alle</h3>
+      <p className="sheet__text">Let Alle use Hotjar to see how people move around the app. It uses cookies. <a href="https://allecards.app/privacy#cookies" target="_blank" rel="noreferrer">Learn more</a></p>
+      <Segmented
+        labelledBy="acc-stats"
+        options={[{ value: 'granted', label: 'Allow' }, { value: 'denied', label: 'Don’t allow' }]}
+        value={value}
+        onChange={(v) => { setValue(v); setConsent(v); announceSaved(); }}
+      />
+    </section>
+  );
+}
+
 export function Account({ user, onUserUpdated, onSignOut }) {
   const email = user.email;
   const meta = user.user_metadata || {};
@@ -134,6 +152,8 @@ export function Account({ user, onUserUpdated, onSignOut }) {
           {pwState === 'saving' ? 'Saving…' : 'Update password'}
         </Button>
       </form>
+
+      <UsageStats />
 
       <SheetActions>
         <Button variant="secondary" onClick={onSignOut}>Sign out</Button>

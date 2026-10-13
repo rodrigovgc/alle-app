@@ -173,7 +173,7 @@ export function FixUp({ cards, sessionTotal, baseCorrect = 0, onExit, onDone }) 
         <AnimatePresence mode="wait" initial={false}>
           <motion.section
             key={card.key}
-            className="fixup__card"
+            className="fixup__card" data-hj-suppress
             initial={reduce ? { opacity: 0 } : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24, transition: { duration: 0.12 } }}

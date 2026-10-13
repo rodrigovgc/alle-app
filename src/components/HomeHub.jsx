@@ -246,7 +246,7 @@ export function Sidebar({ tab, onTab, groups, onGroup, onTour, onAccount, onThem
         <button type="button" className="side__item" onClick={onTour}><Icon name="help" />Quick tutorial</button>
         <a className="side__item" href={HELP} target="_blank" rel="noopener noreferrer"><Icon name="article" />Help and guides</a>
         <button type="button" className="side__item side__account" onClick={onAccount}>
-          <span className="avatar" aria-hidden="true">{userInitials}</span><span className="side__text">{userName}</span>
+          <span className="avatar" aria-hidden="true">{userInitials}</span><span className="side__text" data-hj-suppress>{userName}</span>
         </button>
       </div>
     </aside>

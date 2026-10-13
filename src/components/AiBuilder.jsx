@@ -514,7 +514,7 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
       />
       {parsed?.error && <p className="form-error" role="alert">{parsed.error}</p>}
       {parsed?.deck && (
-        <div className="preview-list" aria-label="Preview">
+        <div className="preview-list" aria-label="Preview" data-hj-suppress>
           <p className="preview-list__head">
             {parsed.deck.cards.length} cards · {parsed.deck.frontLabel} → {parsed.deck.backLabel}
           </p>

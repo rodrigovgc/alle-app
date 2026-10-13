@@ -370,7 +370,7 @@ function FrontFace({ card, interactive, canSkip, typed, setTyped, inputRef, onFo
         <button type="button" className="skip" onClick={onSkip} tabIndex={canSkip ? 0 : -1}>Skip</button>
       </header>
 
-      <div className="study-card__body" onClick={() => interactive && inputRef?.current?.focus()}>
+      <div className="study-card__body" data-hj-suppress onClick={() => interactive && inputRef?.current?.focus()}>
         <div
           ref={promptRef}
           className={`study-card__prompt ${picture || clock ? 'has-picture' : ''}`}
@@ -440,7 +440,7 @@ function BackFace({ card, typed, result }) {
         )}
       </header>
 
-      <div ref={bodyRef} className="study-card__body" data-fit={fit}>
+      <div ref={bodyRef} className="study-card__body" data-hj-suppress data-fit={fit}>
         {hasTyped && (
           <p
             className={`study-card__text study-card__text--typed ${showDiff ? '' : 'is-struck'}`}

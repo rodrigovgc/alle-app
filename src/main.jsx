@@ -8,6 +8,8 @@ import App from './App.jsx';
 import { initTheme } from './lib/theme.js';
 import { captureIntent } from './lib/intent.js';
 import { UpdateBanner } from './components/UpdateBanner.jsx';
+import { Consent } from './components/Consent.jsx';
+import { initHotjar } from './lib/hotjar.js';
 import { DesignSystem } from './screens/DesignSystem.jsx';
 import { Dashboard } from './screens/Dashboard.jsx';
 import './styles/design-system.css';
@@ -22,7 +24,9 @@ function route(path) {
   const p = path.replace(/\/$/, '');
   if (p === '/design') return <DesignSystem />;
   if (p === '/dashboard') return <Dashboard />;
-  return <App />;
+  // Hotjar only on the app itself (not the owner's dashboard or the design system), and only with consent
+  initHotjar();
+  return <><App /><Consent /></>;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
