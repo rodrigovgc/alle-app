@@ -27,15 +27,22 @@ const GUIDES = [
 
 const CONTINUE_MAX = 8;
 
+/*
+ * Sample decks on Home can be hidden (×). They come back when there are no decks at all,
+ * when the ready-made library is opened from +, or with "Show sample decks" at the bottom.
+ * The setting lives in Home (useSamplesHidden) so the + menu can switch it back on.
+ */
 const HIDE_SAMPLES = 'alle-hide-samples';
-export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi, onImport, onStudy, onAddSample }) {
-  // The sample decks can be hidden; the full library stays in the + menu
-  const [samplesHidden, setSamplesHidden] = useState(() => {
+export function useSamplesHidden() {
+  const [hidden, setHiddenState] = useState(() => {
     try { return localStorage.getItem(HIDE_SAMPLES) === '1'; } catch { return false; }
   });
-  const [justHid, setJustHid] = useState(false);
-  const setHidden = (v) => { setSamplesHidden(v); try { localStorage.setItem(HIDE_SAMPLES, v ? '1' : '0'); } catch { /* storage off */ } };
-  const hideSamples = () => { setHidden(true); setJustHid(true); };
+  const setHidden = (v) => { setHiddenState(v); try { localStorage.setItem(HIDE_SAMPLES, v ? '1' : '0'); } catch { /* storage off */ } };
+  return [hidden, setHidden];
+}
+
+export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi, onImport, onStudy, onAddSample, samplesHidden, onSamplesHidden }) {
+  const hideSamples = () => onSamplesHidden(true);
   // Decks to pick up again: the ones studied most recently first, then new ones (newest first).
   // Finished decks (every card seen) drop out; they live on the Decks tab.
   const continuing = decks
@@ -82,18 +89,11 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         </section>
       )}
 
-      {/* Hidden by choice: a short note right after, with Undo and where to find them */}
-      {samplesHidden && justHid && (
-        <p className="hub__note" role="status">
-          Sample decks hidden. You’ll find them under New deck → Browse ready-made decks.
-          <button type="button" className="hub__undo" onClick={() => { setHidden(false); setJustHid(false); }}>Undo</button>
-        </p>
-      )}
       {samples.length > 0 && (!samplesHidden || decks.length === 0) && (
         <section className="hub__section" aria-labelledby="hub-samples">
           <div className="hub__head">
             <h2 id="hub-samples" className="hub__title">Add a sample deck</h2>
-            <button type="button" className="hub__close" aria-label="Hide sample decks" title="Hide sample decks. You’ll still find them under +." onClick={hideSamples}><Icon name="close" /></button>
+            <button type="button" className="hub__close" aria-label="Hide sample decks" title="Hide sample decks" onClick={hideSamples}><Icon name="close" /></button>
           </div>
           <div className="hub__row">
             {samples.map((r) => <SampleTile key={r.key} sample={r} onAdd={() => onAddSample(r.key)} />)}
@@ -108,6 +108,12 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         </div>
         <a className="hub__all" href={HELP} target="_blank" rel="noopener noreferrer">Read all help and guides<Icon name="arrow" /></a>
       </section>
+
+      {samplesHidden && decks.length > 0 && samples.length > 0 && (
+        <footer className="hub__foot">
+          <button type="button" className="hub__show" onClick={() => onSamplesHidden(false)}>Show sample decks</button>
+        </footer>
+      )}
     </div>
   );
 }

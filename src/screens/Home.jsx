@@ -16,7 +16,7 @@ import { useMediaQuery } from '../lib/useMediaQuery.js';
 import { Segmented } from '../components/Segmented.jsx';
 import { Account, ThemeSettings } from '../components/Account.jsx';
 import { READY_MADE } from '../lib/sampleDeck.js';
-import { HomeOverview, TabBar, Sidebar } from '../components/HomeHub.jsx';
+import { HomeOverview, TabBar, Sidebar, useSamplesHidden } from '../components/HomeHub.jsx';
 import { answerMode } from '../lib/srs.js';
 import { fetchSheetName, fetchDeckFromUrl } from '../lib/csv.js';
 import { LANGUAGES, inferLang } from '../lib/speech.js';
@@ -35,7 +35,10 @@ export function Home({
   const [menuOpen, setMenuOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
-  const [sheet, setSheet] = useState(null); // { type, deck? }
+  const [sheet, setSheetState] = useState(null); // { type, deck? }
+  const [samplesHidden, setSamplesHidden] = useSamplesHidden();
+  // Opening the ready-made library from + brings the sample decks back on Home
+  const setSheet = (next) => { if (next?.type === 'library') setSamplesHidden(false); setSheetState(next); };
   // Two tabs: Home (overview, ways to start) and Decks (the list and groups).
   const [tab, setTabState] = useState(() => {
     try { return sessionStorage.getItem('alle-tab') || 'home'; } catch { return 'home'; }
@@ -269,6 +272,8 @@ export function Home({
             onImport={() => setSheet({ type: 'add' })}
             onStudy={onStudyDeck}
             onAddSample={(key) => onAddSample(key, null)}
+            samplesHidden={samplesHidden}
+            onSamplesHidden={setSamplesHidden}
           />
         </>
       )}
