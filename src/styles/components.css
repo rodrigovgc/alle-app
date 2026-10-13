@@ -538,7 +538,7 @@ select.input { background-image: none; }
   /* Shadows take the deck's own colour in light mode, black in dark mode */
   --deck-shadow-rest: color-mix(in srgb, var(--deck-deep) 55%, transparent);
   --deck-shadow-lift: color-mix(in srgb, var(--deck-deep) 70%, transparent);
-  box-shadow: 0 10px 24px -12px var(--deck-shadow-rest);
+  box-shadow: 0 26px 23.4px -10px color-mix(in srgb, var(--deck-shadow-rest) 55%, transparent), 0 10.86px 9.78px -4.18px color-mix(in srgb, var(--deck-shadow-rest) 40%, transparent), 0 5.81px 5.23px -2.23px color-mix(in srgb, var(--deck-shadow-rest) 33%, transparent), 0 3.26px 2.93px -1.25px color-mix(in srgb, var(--deck-shadow-rest) 28%, transparent), 0 1.73px 1.56px -0.67px color-mix(in srgb, var(--deck-shadow-rest) 22%, transparent);
   transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
 }
 /* Dark mode: the highlight is the deck's own lighter hue, not white (white greys it out) */
@@ -552,7 +552,7 @@ select.input { background-image: none; }
 @media (hover: hover) {
   .deck__surface:hover {
     transform: translateY(-4px);
-    box-shadow: 0 22px 40px -16px var(--deck-shadow-lift);
+    box-shadow: 0 44px 39.6px -14px color-mix(in srgb, var(--deck-shadow-lift) 55%, transparent), 0 18.38px 16.54px -5.85px color-mix(in srgb, var(--deck-shadow-lift) 40%, transparent), 0 9.83px 8.85px -3.13px color-mix(in srgb, var(--deck-shadow-lift) 33%, transparent), 0 5.51px 4.96px -1.75px color-mix(in srgb, var(--deck-shadow-lift) 28%, transparent), 0 2.93px 2.63px -0.93px color-mix(in srgb, var(--deck-shadow-lift) 22%, transparent);
     animation-duration: 4s;
   }
   .deck__surface:hover .deck-shape { transform: translate(-6px, -10px) scale(1.12) rotate(-4deg); opacity: 0.5; }

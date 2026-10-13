@@ -26,7 +26,7 @@
 .ins-head__right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ins-range { display: flex; padding: 3px; border-radius: 999px; background: var(--color-surface); }
 .ins-range button { height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
-.ins-range button.is-on { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 3px rgb(12 12 12 / .1); }
+.ins-range button.is-on { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: var(--shadow-button-soft); }
 .ins-refresh { height: 38px; padding: 0 12px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 13px; color: var(--text-tertiary); cursor: pointer; }
 .ins-refresh:hover { color: var(--text-primary); }
 .ins-chips { display: none; }

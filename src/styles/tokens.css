@@ -43,7 +43,7 @@
   --tag-wrong-bg:   var(--deck-red);     --tag-wrong-border:   var(--deck-red-deep);
 
   /* ---- Semantic roles ---------------------------------------------------- */
-  --page-bg:           #FBFAF6;                   /* screen background: lighter than the beige surface */
+  --page-bg:           #F3F0E7;                   /* screen background: warm beige, white cards sit on it */
   --card-bg:           var(--color-background);   /* study card, sheets     */
   --text-primary:      var(--color-foreground);
   --text-secondary:    var(--grey-400);
@@ -66,7 +66,7 @@
   --choice-bg:         var(--color-surface);      /* builder choices and chips */
   --search-field-bg:   var(--color-surface-deep);  /* expanded search: reads as an input */
   --inner-button-bg:   var(--color-surface);      /* icon buttons inside a card/sheet (on white)     */
-  --outer-button-bg:   var(--color-surface);      /* icon buttons on the page: normal beige on the light page */
+  --outer-button-bg:   var(--color-surface-deep); /* icon buttons on the page: deeper beige on the beige page */
   --secondary-bg:      var(--color-surface);      /* secondary buttons                               */
   --picture-frame:     var(--grey-200);           /* outline on flags so white edges show */
   --mark-wrong-bg:     var(--deck-red);           /* letters typed wrong                    */
@@ -171,10 +171,46 @@
   --size-toggle-h:    26px;
 
   /* ---- Elevation --------------------------------------------------------- */
-  --shadow-card:   0 18px 48px rgb(12 12 12 / 0.10), 0 2px 6px rgb(12 12 12 / 0.04);
-  --shadow-card-behind: 0 8px 24px rgb(12 12 12 / 0.05);
-  --shadow-menu:   0 20px 50px rgb(12 12 12 / 0.16), 0 2px 8px rgb(12 12 12 / 0.06);
-  --shadow-button-soft: 0 1px 2px rgb(12 12 12 / 0.06);
+  /* Layered shadows, like Figma's "Beautiful Shadows": six stacked layers that grow
+     and fade, so a raised surface reads as lit, not outlined. Warm brown in light mode. */
+  --shadow-rgb: 74 56 28;
+  --shadow-k: 1;
+  --shadow-card:
+    0 64px 51.2px rgb(var(--shadow-rgb) / calc(0.100 * var(--shadow-k))),
+    0 26.74px 21.39px rgb(var(--shadow-rgb) / calc(0.072 * var(--shadow-k))),
+    0 14.3px 11.44px rgb(var(--shadow-rgb) / calc(0.060 * var(--shadow-k))),
+    0 8.01px 6.41px rgb(var(--shadow-rgb) / calc(0.050 * var(--shadow-k))),
+    0 4.26px 3.4px rgb(var(--shadow-rgb) / calc(0.040 * var(--shadow-k))),
+    0 1.77px 1.42px rgb(var(--shadow-rgb) / calc(0.028 * var(--shadow-k)));
+  --shadow-card-behind:
+    0 28px 22.4px rgb(var(--shadow-rgb) / calc(0.050 * var(--shadow-k))),
+    0 11.7px 9.36px rgb(var(--shadow-rgb) / calc(0.036 * var(--shadow-k))),
+    0 6.26px 5px rgb(var(--shadow-rgb) / calc(0.030 * var(--shadow-k))),
+    0 3.51px 2.8px rgb(var(--shadow-rgb) / calc(0.025 * var(--shadow-k))),
+    0 1.86px 1.49px rgb(var(--shadow-rgb) / calc(0.020 * var(--shadow-k))),
+    0 0.78px 0.62px rgb(var(--shadow-rgb) / calc(0.014 * var(--shadow-k)));
+  --shadow-menu:
+    0 80px 64px rgb(var(--shadow-rgb) / calc(0.140 * var(--shadow-k))),
+    0 33.42px 26.74px rgb(var(--shadow-rgb) / calc(0.101 * var(--shadow-k))),
+    0 17.87px 14.3px rgb(var(--shadow-rgb) / calc(0.083 * var(--shadow-k))),
+    0 10.02px 8.01px rgb(var(--shadow-rgb) / calc(0.070 * var(--shadow-k))),
+    0 5.32px 4.26px rgb(var(--shadow-rgb) / calc(0.057 * var(--shadow-k))),
+    0 2.22px 1.77px rgb(var(--shadow-rgb) / calc(0.039 * var(--shadow-k))),
+    0 0 0 0.5px rgb(var(--shadow-rgb) / calc(0.06 * var(--shadow-k)));
+  --shadow-button-soft:
+    0 6px 4.8px rgb(var(--shadow-rgb) / calc(0.070 * var(--shadow-k))),
+    0 2.51px 2.01px rgb(var(--shadow-rgb) / calc(0.050 * var(--shadow-k))),
+    0 1.34px 1.07px rgb(var(--shadow-rgb) / calc(0.042 * var(--shadow-k))),
+    0 0.75px 0.6px rgb(var(--shadow-rgb) / calc(0.035 * var(--shadow-k))),
+    0 0.4px 0.32px rgb(var(--shadow-rgb) / calc(0.028 * var(--shadow-k))),
+    0 0.17px 0.13px rgb(var(--shadow-rgb) / calc(0.020 * var(--shadow-k)));
+  --shadow-raised:
+    0 18px 14.4px rgb(var(--shadow-rgb) / calc(0.100 * var(--shadow-k))),
+    0 7.52px 6.02px rgb(var(--shadow-rgb) / calc(0.072 * var(--shadow-k))),
+    0 4.02px 3.22px rgb(var(--shadow-rgb) / calc(0.060 * var(--shadow-k))),
+    0 2.25px 1.8px rgb(var(--shadow-rgb) / calc(0.050 * var(--shadow-k))),
+    0 1.2px 0.96px rgb(var(--shadow-rgb) / calc(0.040 * var(--shadow-k))),
+    0 0.5px 0.4px rgb(var(--shadow-rgb) / calc(0.028 * var(--shadow-k)));
 
   /* ---- Card stack -------------------------------------------------------- */
   --stack-scale-step: 0.03;   /* each card behind is ~3% smaller           */
@@ -244,10 +280,8 @@
   --scrim:          rgb(0 0 0 / 0.55);
   --press-overlay:  rgb(255 255 255 / 0.06);
 
-  --shadow-card:   0 18px 48px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
-  --shadow-card-behind: 0 8px 24px rgb(0 0 0 / 0.3);
-  --shadow-menu:   0 20px 50px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.35);
-  --shadow-button-soft: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-rgb: 0 0 0;
+  --shadow-k: 3.6;   /* same layers, stronger, so they still show on the dark page */
 
   /* Buttons in dark mode: a raised grey, not bright white (see reference). */
   --cta-bg:            #38352F;   /* primary button: dark raised grey        */
