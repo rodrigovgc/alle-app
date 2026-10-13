@@ -22,7 +22,7 @@ const GUIDES = [
   { scene: 'sheets', title: 'Turn a Google Sheet into flashcards', url: `${HELP}#sheets`,
     text: 'Put what you want to learn in one column and the answers in the next. Publish the sheet, paste its link, and every row becomes a card.' },
   { scene: 'ai', title: 'Create flashcards with AI', url: `${HELP}#ai`,
-    text: 'Tell Alle what you want to learn. It writes the prompt, your favourite AI writes the cards, and you paste them back.' },
+    text: 'Tell Alle what you want to learn and it makes the cards for you, with 3 free decks a month. Or use the prompt with your own AI and paste the cards back.' },
   { scene: 'study', title: 'How studying works', url: `${HELP}#study`,
     text: 'Short sessions of up to 10 cards. Cards you get right come back later; the ones you miss come back sooner.' },
   { scene: 'home', title: 'Add Alle to your Home Screen', url: `${HELP}#home-screen`,

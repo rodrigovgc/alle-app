@@ -34,7 +34,7 @@ const STEPS = [
   {
     key: 'ai',
     title: 'Create a deck with AI',
-    text: 'Get a prompt from Alle, use it with your favourite AI, then paste the cards back.',
+    text: 'Let Alle make the cards (3 free decks a month), or use the prompt with your own AI.',
     Scene: SCENES.ai,
   },
   {
