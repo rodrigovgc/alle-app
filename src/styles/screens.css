@@ -679,17 +679,18 @@
 /* ==========================================================================
    Home tab + tab bar (test branch: test/home-tabs)
    ========================================================================== */
-:root { --size-tabbar: 66px; --size-tab-add: 64px; }
+:root { --size-tabbar: 58px; --size-tab-add: 56px; --shadow-soft-card: 0 1px 2px rgb(12 12 12 / 0.04), 0 10px 28px -14px rgb(12 12 12 / 0.16); }
+:root[data-theme="dark"] { --shadow-soft-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -14px rgb(0 0 0 / 0.6); }
 .home { padding-bottom: calc(var(--size-tabbar) + var(--space-10) + env(safe-area-inset-bottom)); }
 .home__logo-btn { display: flex; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
 
 /* the first title lines up with the first group name on Decks (same top, same left), so switching tabs doesn't jump */
-:root { --group-name-offset: 5.5px; }
+:root { --group-name-offset: 6.75px; }
 .hub { display: flex; flex-direction: column; gap: var(--space-10); padding-top: calc(var(--space-6) + var(--group-name-offset)); }
 .hub__section { display: flex; flex-direction: column; gap: var(--space-4); }
 .hub__title {
   padding: 0 var(--gutter);
-  font-size: var(--font-size-small-title); font-weight: var(--font-weight-medium);
+  font-size: var(--size-section-title); font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-title);
 }
 
@@ -698,9 +699,9 @@
 .create-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);
   min-height: 168px; padding: var(--space-4);
-  border: 1px solid var(--start-tile-border); border-radius: var(--radius-deck);
+  border: 0; border-radius: var(--radius-deck);
   background: var(--card-bg); color: var(--text-primary);
-  box-shadow: 0 10px 24px -18px rgb(12 12 12 / 0.25);
+  box-shadow: var(--shadow-soft-card);
   text-align: left; text-decoration: none; cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-out);
 }
@@ -732,7 +733,7 @@
 .continue-card {
   width: min(82%, 340px); min-height: 172px; padding: var(--space-5); border-radius: var(--radius-deck);
   background: var(--card-bg); color: var(--text-primary);
-  border: 1px solid var(--start-tile-border); box-shadow: 0 10px 24px -18px rgb(12 12 12 / 0.25);
+  border: 0; box-shadow: var(--shadow-soft-card);
 }
 .continue-card__badge {
   position: relative; display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: var(--space-4);
@@ -862,17 +863,42 @@
 .side__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .home.home--side { --gutter: var(--space-8); width: auto; max-width: none; margin: 0 0 0 var(--side-w); padding-bottom: var(--space-10); }
 .home--side .home__logo { visibility: hidden; }
-.home--side > * { max-width: 1120px; margin-left: auto; margin-right: auto; }
+.home--side > :is(.home__header, .hub, .deck-board, .deck-list, .home__title-row, .empty__body) { max-width: 1120px; margin-left: auto; margin-right: auto; }
 .home--side .hub { gap: 56px; }
-.home__header--wide { display: grid; grid-template-columns: 1fr minmax(280px, 520px) 1fr; align-items: center; gap: var(--space-4); }
+.home__header--wide { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 .home__header-end { display: flex; justify-content: flex-end; }
-.home__header-end .btn { width: auto; padding: 0 var(--space-6); }
+.home__header-end .btn { width: auto; height: 40px; padding: 0 var(--space-4) 0 var(--space-3); font-size: var(--font-size-small); gap: 6px; }
+.home__header-end .btn .icon { width: 20px; height: 20px; }
 .wide-search {
-  display: flex; align-items: center; gap: var(--space-2); height: 48px; padding: 0 var(--space-4);
-  border-radius: var(--radius-pill); background: var(--color-surface); cursor: text;
+  display: flex; align-items: center; gap: var(--space-2); width: min(100%, 440px); height: var(--size-icon-button); padding: 0 var(--space-1) 0 var(--space-4);
+  border-radius: var(--radius-pill); background: var(--outer-button-bg); cursor: text;
+  transition: background var(--duration-base) var(--ease-out);
 }
-.wide-search:focus-within { box-shadow: 0 0 0 2px var(--border-selected); }
+.wide-search:focus-within, .wide-search.has-text { background: var(--search-field-bg); }
+.wide-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.wide-search input::placeholder { color: var(--text-tertiary); }
+.wide-search .search__cancel { border: 0; background: none; cursor: pointer; }
 .wide-search__icon { width: 20px; height: 20px; color: var(--text-secondary); flex: none; }
 .wide-search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; font: inherit; font-size: var(--font-size-small); color: var(--text-primary); outline: none; }
 .side__account { margin-top: var(--space-3); padding-left: var(--space-2); }
 .side__account .avatar { width: 30px; height: 30px; font-size: 12px; flex: none; }
+
+/* One size for section titles: Home sections and group names */
+:root { --size-section-title: 18px; }
+.home__title { font-size: var(--size-section-title); font-weight: var(--font-weight-semibold); }
+/* Less space between a group's name and its decks */
+.group__head { padding-bottom: var(--space-2); }
+.group__decks { margin-top: var(--space-2); }
+/* Sample decks can be hidden */
+.hub__head { display: flex; align-items: center; justify-content: space-between; padding-right: calc(var(--gutter) - 8px); }
+.hub__close { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; color: var(--text-secondary); cursor: pointer; }
+.hub__close:hover { background: var(--color-surface); }
+.hub__close .icon { width: 20px; height: 20px; }
+/* Guides: a short paragraph under the title */
+.guide-card__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.guide-card__body { font-size: var(--font-size-small); line-height: var(--line-height-body); color: var(--text-secondary); }
+.guide-card__foot { align-items: flex-start; }
+/* Tab bar: closer to Apple's size */
+.tabbar__tab { width: 76px; font-size: 11px; gap: 2px; }
+.tabbar__tab .icon { width: 24px; height: 24px; }
+.tabbar__add .icon { width: 26px; height: 26px; }

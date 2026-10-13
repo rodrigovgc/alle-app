@@ -146,10 +146,9 @@ export function Home({
         </div>
       )}
       {wide ? (
-        /* Desktop: search in the middle, New deck on the right; account and theme live in the sidebar */
+        /* Desktop: search lined up with the cards, New deck on the right; account and theme live in the sidebar */
         <header className="home__header home__header--wide">
-          <span />
-          <label className="wide-search">
+          <label className={`wide-search ${query ? 'has-text' : ''}`}>
             <Icon name="search" className="wide-search__icon" />
             <input
               type="search"
@@ -160,6 +159,7 @@ export function Home({
               onChange={(e) => { const v = e.target.value; setQuery(v); setSearching(Boolean(v.trim())); }}
               onKeyDown={(e) => e.key === 'Escape' && closeSearch()}
             />
+            {query && <button type="button" className="search__cancel" onClick={closeSearch}>Cancel</button>}
           </label>
           <div className="home__header-end">
             <Button icon="plus" onClick={() => setSheet({ type: 'choose' })}>New deck</Button>

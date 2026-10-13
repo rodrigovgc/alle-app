@@ -121,13 +121,13 @@ export function GroupedBoard({
       onDragEnd={onDragEnd}
       onDragCancel={() => { setActive(null); setItems(build(groups, decks)); }}
     >
-      {/* New decks wait here, above the groups, until they're moved into one */}
+      {/* "My decks": new decks wait here, above the groups, until they're moved into one */}
       {items[NONE].length > 0 && (
-        <section className="group group--none group--recent" aria-label="Recently added">
+        <section className="group group--none group--recent" aria-label="My decks">
           <div className="home__title-row group__head">
-            <h2 className="home__title group__title">Recently added</h2>
+            <h2 className="home__title group__title">My decks</h2>
           </div>
-          <p className="group__hint">Move them into a group whenever you like, from a deck’s ••• menu.</p>
+          <p className="group__hint">You can organise them into groups.</p>
           <DeckArea containerKey={NONE} ids={items[NONE]} byId={byId} renderDeck={renderDeck} canDrag={canDragDecks}
             empty="Drop a deck here to take it out of its group." />
         </section>

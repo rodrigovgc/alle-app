@@ -15,15 +15,25 @@ const HELP = 'https://allecards.app/help';
 export const TEMPLATE_URL = 'https://allecards.app/template';
 
 const GUIDES = [
-  { scene: 'sheets', title: 'Turn a Google Sheet into flashcards', url: `${HELP}#sheets` },
-  { scene: 'ai', title: 'Create flashcards with AI', url: `${HELP}#ai` },
-  { scene: 'study', title: 'How studying works', url: `${HELP}#study` },
-  { scene: 'home', title: 'Add Alle to your Home Screen', url: `${HELP}#home-screen` },
+  { scene: 'sheets', title: 'Turn a Google Sheet into flashcards', url: `${HELP}#sheets`,
+    text: 'Put what you want to learn in one column and the answers in the next. Publish the sheet, paste its link, and every row becomes a card.' },
+  { scene: 'ai', title: 'Create flashcards with AI', url: `${HELP}#ai`,
+    text: 'Tell Alle what you want to learn. It writes the prompt, your favourite AI writes the cards, and you paste them back.' },
+  { scene: 'study', title: 'How studying works', url: `${HELP}#study`,
+    text: 'Short sessions of up to 10 cards. Cards you get right come back later; the ones you miss come back sooner.' },
+  { scene: 'home', title: 'Add Alle to your Home Screen', url: `${HELP}#home-screen`,
+    text: 'In Safari, tap Share, then Add to Home Screen. Alle opens full screen, like an app. No app store needed.' },
 ];
 
 const CONTINUE_MAX = 8;
 
+const HIDE_SAMPLES = 'alle-hide-samples';
 export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi, onImport, onStudy, onAddSample }) {
+  // The sample decks can be hidden; the full library stays in the + menu
+  const [samplesHidden, setSamplesHidden] = useState(() => {
+    try { return localStorage.getItem(HIDE_SAMPLES) === '1'; } catch { return false; }
+  });
+  const hideSamples = () => { setSamplesHidden(true); try { localStorage.setItem(HIDE_SAMPLES, '1'); } catch { /* storage off */ } };
   // Decks to pick up again: the ones studied most recently first, then new ones (newest first).
   // Finished decks (every card seen) drop out; they live on the Decks tab.
   const continuing = decks
@@ -70,9 +80,12 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         </section>
       )}
 
-      {samples.length > 0 && (
+      {samples.length > 0 && !samplesHidden && (
         <section className="hub__section" aria-labelledby="hub-samples">
-          <h2 id="hub-samples" className="hub__title">Add a sample deck</h2>
+          <div className="hub__head">
+            <h2 id="hub-samples" className="hub__title">Add a sample deck</h2>
+            <button type="button" className="hub__close" aria-label="Hide sample decks" title="Hide sample decks. You’ll still find them under +." onClick={hideSamples}><Icon name="close" /></button>
+          </div>
           <div className="hub__row">
             {samples.map((r) => <SampleTile key={r.key} sample={r} onAdd={() => onAddSample(r.key)} />)}
           </div>
@@ -146,7 +159,10 @@ function GuideCard({ guide }) {
     <a className="guide-card" href={guide.url} target="_blank" rel="noopener noreferrer">
       <span className="guide-card__stage" aria-hidden="true"><span className="guide-card__scene"><Scene /></span></span>
       <span className="guide-card__foot">
-        <span className="guide-card__title">{guide.title}</span>
+        <span className="guide-card__text">
+          <span className="guide-card__title">{guide.title}</span>
+          <span className="guide-card__body">{guide.text}</span>
+        </span>
         <button type="button" className="guide-card__share" aria-label={`Share the guide: ${guide.title}`} onClick={share}><Icon name="share" /></button>
       </span>
     </a>
