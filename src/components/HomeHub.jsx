@@ -33,7 +33,9 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
   const [samplesHidden, setSamplesHidden] = useState(() => {
     try { return localStorage.getItem(HIDE_SAMPLES) === '1'; } catch { return false; }
   });
-  const hideSamples = () => { setSamplesHidden(true); try { localStorage.setItem(HIDE_SAMPLES, '1'); } catch { /* storage off */ } };
+  const [justHid, setJustHid] = useState(false);
+  const setHidden = (v) => { setSamplesHidden(v); try { localStorage.setItem(HIDE_SAMPLES, v ? '1' : '0'); } catch { /* storage off */ } };
+  const hideSamples = () => { setHidden(true); setJustHid(true); };
   // Decks to pick up again: the ones studied most recently first, then new ones (newest first).
   // Finished decks (every card seen) drop out; they live on the Decks tab.
   const continuing = decks
@@ -80,7 +82,14 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         </section>
       )}
 
-      {samples.length > 0 && !samplesHidden && (
+      {/* Hidden by choice: a short note right after, with Undo and where to find them */}
+      {samplesHidden && justHid && (
+        <p className="hub__note" role="status">
+          Sample decks hidden. You’ll find them under New deck → Browse ready-made decks.
+          <button type="button" className="hub__undo" onClick={() => { setHidden(false); setJustHid(false); }}>Undo</button>
+        </p>
+      )}
+      {samples.length > 0 && (!samplesHidden || decks.length === 0) && (
         <section className="hub__section" aria-labelledby="hub-samples">
           <div className="hub__head">
             <h2 id="hub-samples" className="hub__title">Add a sample deck</h2>
@@ -97,7 +106,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         <div className="guides">
           {GUIDES.map((g) => <GuideCard key={g.scene} guide={g} />)}
         </div>
-        <a className="btn btn--secondary hub__all" href={HELP} target="_blank" rel="noopener noreferrer"><span>Read all help and guides</span></a>
+        <a className="hub__all" href={HELP} target="_blank" rel="noopener noreferrer">Read all help and guides<Icon name="arrow" /></a>
       </section>
     </div>
   );

@@ -329,7 +329,7 @@ export function Home({
                     </button>
                     {others > 0 && (
                       <button type="button" className="text-btn group__empty-link" onClick={() => setSheet({ type: 'group-fill', group: g })}>
-                        <Icon name="swap" />Move decks here
+                        <Icon name="folderIn" />Move decks here
                       </button>
                     )}
                   </div>
@@ -340,8 +340,8 @@ export function Home({
               { label: 'Shuffle this group', icon: 'shuffle', disabled: !inGroup.length, onSelect: () => onShuffle(inGroup.map((d) => d.id)) },
               { label: 'Reorder decks', icon: 'sort', disabled: inGroup.length < 2, onSelect: () => startReorder(inGroup, `Reorder ${g.title}`) },
               { label: 'Repaint decks', icon: 'repaint', disabled: !inGroup.length, onSelect: () => onRainbow(inGroup.map((d) => d.id)) },
-              { label: 'Move decks here', icon: 'swap', disabled: inGroup.length === decks.length, onSelect: () => setSheet({ type: 'group-fill', group: g }) },
-              { label: 'New group', icon: 'folder', onSelect: () => setSheet({ type: 'group-new', after: g.id }) },
+              { label: 'Move decks here', icon: 'folderIn', disabled: inGroup.length === decks.length, onSelect: () => setSheet({ type: 'group-fill', group: g }) },
+              { label: 'New group', icon: 'folderAdd', onSelect: () => setSheet({ type: 'group-new', after: g.id }) },
               { label: 'Share group', icon: 'share', disabled: !inGroup.length, onSelect: () => setSheet({ type: 'group-share', group: g }) },
               { divider: true },
               { label: 'Delete group', icon: 'trash', danger: true, disabled: sortedGroups.length < 2, onSelect: () => setSheet({ type: 'group-delete', group: g, count: inGroup.length }) },
@@ -972,7 +972,7 @@ function MoveToGroup({ deck, groups, onMove, onCreate }) {
           <Button type="submit" disabled={!title.trim()}>Create and move</Button>
         </form>
       ) : (
-        <button type="button" className="text-btn" onClick={() => setCreating(true)}>+ New group</button>
+        <button type="button" className="text-btn group__empty-link" onClick={() => setCreating(true)}><Icon name="folderAdd" />New group</button>
       )}
       {error && <p className="form-error" role="alert">{error}</p>}
     </div>

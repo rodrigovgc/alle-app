@@ -718,7 +718,8 @@
 /* Sideways rows: Continue learning, sample decks */
 .hub__row {
   display: flex; gap: var(--space-3); overflow-x: auto;
-  padding: 0 var(--gutter) var(--space-2); scroll-padding: 0 var(--gutter);
+  /* extra room above and below so the cards' shadow isn't clipped by the scroller */
+  padding: var(--space-4) var(--gutter) var(--space-8); margin: calc(var(--space-4) * -1) 0 calc(var(--space-8) * -1); scroll-padding: 0 var(--gutter);
   scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
 }
 .hub__row::-webkit-scrollbar { display: none; }
@@ -821,7 +822,7 @@
 
 /* Tablet and up: no cut-off carousels, the rows become grids */
 @media (min-width: 720px) {
-  .hub__row { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; padding-bottom: 0; }
+  .hub__row { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; padding-top: 0; padding-bottom: 0; margin: 0; }
   .continue-card, .sample-tile { width: auto; }
   .hub__row--continue > :nth-child(n + 4) { display: none; }   /* one full row */
 }
@@ -866,7 +867,8 @@
 .home--side > :is(.home__header, .hub, .deck-board, .deck-list, .home__title-row, .empty__body) { max-width: 1120px; margin-left: auto; margin-right: auto; }
 .home--side .hub { gap: 56px; }
 .home__header--wide { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
-.home__header-end { display: flex; justify-content: flex-end; }
+.home__header-end { display: flex; justify-content: flex-end; flex: none; }
+.home__header-end .btn { white-space: nowrap; }
 .home__header-end .btn { width: auto; height: 40px; padding: 0 var(--space-4) 0 var(--space-3); font-size: var(--font-size-small); gap: 6px; }
 .home__header-end .btn .icon { width: 20px; height: 20px; }
 .wide-search {
@@ -899,7 +901,15 @@
 .guide-card__foot { align-items: center; margin-bottom: calc(var(--space-2) * -1); }
 .guide-card__share { margin-right: -8px; }
 .guides { gap: var(--space-8); }
-.hub__all { margin: var(--space-2) var(--gutter) 0; width: auto; text-decoration: none; }
+.hub__all {
+  display: inline-flex; align-items: center; gap: var(--space-2); align-self: flex-start;
+  margin: var(--space-4) var(--gutter) 0; padding: var(--space-2) 0;
+  font-size: var(--font-size-button); font-weight: var(--font-weight-medium); color: var(--text-primary);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+}
+.hub__all .icon { width: 18px; height: 18px; }
+.hub__note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); margin: 0 var(--gutter); font-size: var(--font-size-small); color: var(--text-secondary); }
+.hub__undo { padding: 0; border: 0; background: none; font: inherit; font-weight: var(--font-weight-medium); color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 /* Tab bar: closer to Apple's size */
 .tabbar__tab { width: 76px; font-size: 11px; gap: 2px; }
 .tabbar__tab .icon { width: 24px; height: 24px; }
