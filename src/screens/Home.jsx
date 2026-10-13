@@ -16,7 +16,7 @@ import { useMediaQuery } from '../lib/useMediaQuery.js';
 import { Segmented } from '../components/Segmented.jsx';
 import { Account, ThemeSettings } from '../components/Account.jsx';
 import { READY_MADE } from '../lib/sampleDeck.js';
-import { HomeOverview, TabBar } from '../components/HomeHub.jsx';
+import { HomeOverview, TabBar, Sidebar } from '../components/HomeHub.jsx';
 import { answerMode } from '../lib/srs.js';
 import { fetchSheetName, fetchDeckFromUrl } from '../lib/csv.js';
 import { LANGUAGES, inferLang } from '../lib/speech.js';
@@ -78,6 +78,13 @@ export function Home({
   const addToTitle = addTo ? groups?.find((g) => g.id === addTo)?.title : null;
   // A mouse or trackpad: decks can be dragged into place directly.
   const canDrag = useMediaQuery('(hover: hover) and (pointer: fine)');
+  // Desktop: a sidebar replaces the tab bar
+  const wide = useMediaQuery('(min-width: 1024px)');
+  const goToGroup = (g) => {
+    if (searching) closeSearch();
+    setTab('decks');
+    requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(`group-${g.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
+  };
   // Reorder mode: a working copy of the order, saved on Done.
   const [order, setOrder] = useState(null);
   const reordering = order !== null;
@@ -117,7 +124,18 @@ export function Home({
   const remainingReadyMade = READY_MADE.filter((r) => !decks.some((d) => d.is_sample && d.title === r.title));
 
   return (
-    <main className="home" style={ptr.pull ? { transform: `translateY(${ptr.pull}px)`, transition: 'none' } : undefined}>
+    <>
+    {wide && !reordering && (
+      <Sidebar
+        tab={searching ? 'decks' : tab}
+        onTab={(t) => { if (searching) closeSearch(); setTab(t); }}
+        onAdd={() => setSheet({ type: 'choose' })}
+        groups={groupsOn ? sortedGroups : []}
+        onGroup={goToGroup}
+        onTour={onHelp}
+      />
+    )}
+    <main className={`home ${wide ? 'home--side' : ''}`} style={ptr.pull ? { transform: `translateY(${ptr.pull}px)`, transition: 'none' } : undefined}>
       {(ptr.pull > 0 || ptr.refreshing) && (
         <div className="ptr" style={{ top: `${-ptr.pull + 12}px`, opacity: ptr.progress }} aria-live="polite">
           <span className={`ptr__spinner ${ptr.refreshing ? 'is-spinning' : ''}`} style={{ transform: `rotate(${ptr.progress * 270}deg)` }} />
@@ -349,7 +367,7 @@ export function Home({
       </section>
       </>}
 
-      {!reordering && <TabBar tab={searching ? 'decks' : tab} onTab={(t) => { if (searching) closeSearch(); setTab(t); }} onAdd={() => setSheet({ type: 'choose' })} />}
+      {!reordering && !wide && <TabBar tab={searching ? 'decks' : tab} onTab={(t) => { if (searching) closeSearch(); setTab(t); }} onAdd={() => setSheet({ type: 'choose' })} />}
 
       <Sheet open={sheet?.type === 'choose'} onClose={close} title="Create your own deck" variant="dialog">
         <div className="sheet__body">
@@ -600,6 +618,7 @@ export function Home({
         )}
       </Sheet>
     </main>
+    </>
   );
 }
 

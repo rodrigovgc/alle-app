@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { DeckShape, Icon } from './Icon.jsx';
+import { DeckShape, Icon, Logo } from './Icon.jsx';
 import { SCENES } from './Scenes.jsx';
 import { READY_MADE, LIBRARY, SAMPLE_DECKS } from '../lib/sampleDeck.js';
 import { deckColorVars, deckShape, SPRING } from '../styles/tokens.js';
@@ -62,7 +62,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
       {continuing.length > 0 && (
         <section className="hub__section" aria-labelledby="hub-continue">
           <h2 id="hub-continue" className="hub__title">Continue learning</h2>
-          <div className="hub__row">
+          <div className="hub__row hub__row--continue">
             {continuing.map(({ d, p }) => (
               <ContinueCard key={d.id} deck={d} mode={colorMode} progress={p} due={dueByDeck[d.id] || 0} onOpen={() => onStudy(d)} />
             ))}
@@ -174,5 +174,43 @@ export function TabBar({ tab, onTab, onAdd }) {
       </div>
       <button type="button" className="tabbar__add" aria-label="Add deck" onClick={onAdd}><Icon name="plus" /></button>
     </nav>
+  );
+}
+
+/** Desktop: a sidebar instead of the tab bar. */
+export function Sidebar({ tab, onTab, onAdd, groups, onGroup, onTour }) {
+  const TABS = [
+    { key: 'home', label: 'Home', icon: 'home', active: 'homeActive' },
+    { key: 'decks', label: 'Decks', icon: 'decks', active: 'decksActive' },
+  ];
+  return (
+    <aside className="side" aria-label="Main">
+      <button type="button" className="side__logo" aria-label="Alle, go to Home" onClick={() => onTab('home')}><Logo /></button>
+      <button type="button" className="side__new" onClick={onAdd}><Icon name="plus" />New deck</button>
+      <nav className="side__nav">
+        {TABS.map((t) => {
+          const on = tab === t.key;
+          return (
+            <button key={t.key} type="button" className={`side__item ${on ? 'is-active' : ''}`} aria-current={on ? 'page' : undefined} onClick={() => onTab(t.key)}>
+              <Icon name={on ? t.active : t.icon} />{t.label}
+            </button>
+          );
+        })}
+      </nav>
+      {groups.length > 0 && (
+        <nav className="side__groups" aria-label="Groups">
+          <span className="side__label">Groups</span>
+          {groups.map((g) => (
+            <button key={g.id} type="button" className="side__item side__item--group" onClick={() => onGroup(g)}>
+              <Icon name="folder" /><span className="side__text">{g.title}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+      <div className="side__foot">
+        <button type="button" className="side__item" onClick={onTour}><Icon name="help" />Quick tutorial</button>
+        <a className="side__item" href={HELP} target="_blank" rel="noopener noreferrer"><Icon name="article" />Help and guides</a>
+      </div>
+    </aside>
   );
 }

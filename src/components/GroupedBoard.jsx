@@ -121,6 +121,17 @@ export function GroupedBoard({
       onDragEnd={onDragEnd}
       onDragCancel={() => { setActive(null); setItems(build(groups, decks)); }}
     >
+      {/* New decks wait here, above the groups, until they're moved into one */}
+      {items[NONE].length > 0 && (
+        <section className="group group--none group--recent" aria-label="Recently added">
+          <div className="home__title-row group__head">
+            <h2 className="home__title group__title">Recently added</h2>
+          </div>
+          <p className="group__hint">Move them into a group whenever you like, from a deck’s ••• menu.</p>
+          <DeckArea containerKey={NONE} ids={items[NONE]} byId={byId} renderDeck={renderDeck} canDrag={canDragDecks}
+            empty="Drop a deck here to take it out of its group." />
+        </section>
+      )}
       <SortableContext items={groups.map((g) => G(g.id))} strategy={verticalListSortingStrategy}>
         {groups.map((g) => (
           <GroupSection
@@ -135,13 +146,6 @@ export function GroupedBoard({
           </GroupSection>
         ))}
       </SortableContext>
-      {items[NONE].length > 0 && (
-        <section className="group group--none" aria-label="Decks without a group">
-          <h2 className="home__title group__title group__title--none">Other decks</h2>
-          <DeckArea containerKey={NONE} ids={items[NONE]} byId={byId} renderDeck={renderDeck} canDrag={canDragDecks}
-            empty="Drop a deck here to take it out of its group." />
-        </section>
-      )}
     </DndContext>
   );
 }
@@ -184,6 +188,7 @@ function GroupSection({ group, items, onToggle, onRename, children }) {
   return (
     <section
       ref={setNodeRef}
+      id={`group-${group.id}`}
       className={`group ${isDragging ? 'is-dragging' : ''}`}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       aria-label={group.title}

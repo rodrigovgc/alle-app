@@ -106,15 +106,14 @@ function Library({ user, onUser }) {
   // ask to sign in again, and save it straight after.
   const saveNewDeck = useCallback(async (deck, source) => {
     try {
+      // A new deck stays out of the groups (it shows under "Recently added" at the top of
+      // Decks) until it's moved into one. The very first deck starts the first group.
       let groupId = deck.group_id;
       const gs = groupsRef.current;
-      if (!groupId && gs) {
-        let first = sortGroups(gs)[0];
-        if (!first) {
-          first = await api.createGroup({ title: 'My study decks', position: 1 });
-          groupsRef.current = [first];
-          setGroups([first]);
-        }
+      if (!groupId && gs && !gs.length) {
+        const first = await api.createGroup({ title: 'My study decks', position: 1 });
+        groupsRef.current = [first];
+        setGroups([first]);
         groupId = first.id;
       }
       const created = await api.createDeck({ ...deck, ...(groupId ? { group_id: groupId } : {}), source: SOURCES[source] ?? deck.source ?? null });
@@ -245,13 +244,9 @@ function Library({ user, onUser }) {
       // Every deck lives in a group, and there is always at least one group.
       if (g && d.length) {
         if (!g.length) g = [await api.createGroup({ title: 'My study decks', position: 1 })];
-        const first = sortGroups(g)[0].id;
+        // Decks whose group was deleted elsewhere go back to "Recently added" (no group).
         const ids = new Set(g.map((x) => x.id));
-        const orphans = d.filter((x) => !x.group_id || !ids.has(x.group_id));
-        if (orphans.length) {
-          await Promise.all(orphans.map((x) => api.updateDeck(x.id, { group_id: first }).catch(() => {})));
-          d = d.map((x) => (orphans.includes(x) ? { ...x, group_id: first } : x));
-        }
+        d = d.map((x) => (x.group_id && !ids.has(x.group_id) ? { ...x, group_id: null } : x));
       }
       setDecks(d);
       setGroups(g);
