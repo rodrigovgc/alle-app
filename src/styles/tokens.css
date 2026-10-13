@@ -43,7 +43,7 @@
   --tag-wrong-bg:   var(--deck-red);     --tag-wrong-border:   var(--deck-red-deep);
 
   /* ---- Semantic roles ---------------------------------------------------- */
-  --page-bg:           #F7F5EF;                   /* screen background: warm beige, white cards sit on it */
+  --page-bg:           #F9F8F3;                   /* screen background: warm beige, white cards sit on it */
   --card-bg:           var(--color-background);   /* study card, sheets     */
   --text-primary:      var(--color-foreground);
   --text-secondary:    var(--grey-400);
