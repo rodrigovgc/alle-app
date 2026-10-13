@@ -767,7 +767,7 @@
   border-radius: var(--radius-deck); background: var(--start-tile-bg); border: 1px solid var(--start-tile-border);
 }
 .guide-card__scene { display: block; transform: scale(0.8); }
-.guide-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-left: var(--space-1); }
+.guide-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .guide-card__title { font-size: var(--font-size-button); font-weight: var(--font-weight-medium); line-height: var(--line-height-tight); }
 .guide-card__share { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--text-primary); cursor: pointer; }
 .guide-card__share .icon { width: 22px; height: 22px; }
@@ -817,7 +817,7 @@
 
 /* Recently added: new decks, above the groups (title lines up with the group names) */
 .group--recent .group__head .group__title { padding-left: var(--gutter); padding-top: var(--group-name-offset); }
-.group__hint { padding: 0 var(--gutter) var(--space-3); margin-top: calc(var(--space-2) * -1); font-size: var(--font-size-caption); color: var(--text-secondary); }
+.group__hint { padding: 0 var(--gutter) var(--space-3); margin-top: var(--space-1); font-size: var(--font-size-caption); color: var(--text-secondary); }
 
 /* Tablet and up: no cut-off carousels, the rows become grids */
 @media (min-width: 720px) {
@@ -895,10 +895,38 @@
 .hub__close:hover { background: var(--color-surface); }
 .hub__close .icon { width: 20px; height: 20px; }
 /* Guides: a short paragraph under the title */
-.guide-card__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .guide-card__body { font-size: var(--font-size-small); line-height: var(--line-height-body); color: var(--text-secondary); }
-.guide-card__foot { align-items: flex-start; }
+.guide-card__foot { align-items: center; margin-bottom: calc(var(--space-2) * -1); }
+.guide-card__share { margin-right: -8px; }
+.guides { gap: var(--space-8); }
+.hub__all { margin: var(--space-2) var(--gutter) 0; width: auto; text-decoration: none; }
 /* Tab bar: closer to Apple's size */
 .tabbar__tab { width: 76px; font-size: 11px; gap: 2px; }
 .tabbar__tab .icon { width: 24px; height: 24px; }
 .tabbar__add .icon { width: 26px; height: 26px; }
+
+/* Desktop search: as wide as the first card; grows towards New deck while you search */
+:root { --new-deck-w: 116px; }
+.home__header--wide .wide-search { width: calc((100% - 2 * var(--space-3)) / 3); transition: width var(--duration-base) var(--ease-out), background var(--duration-base) var(--ease-out); }
+.home__header--wide .wide-search:focus-within, .home__header--wide .wide-search.has-text { width: calc(100% - var(--new-deck-w) - var(--space-6)); }
+@media (prefers-reduced-motion: reduce) { .home__header--wide .wide-search { transition: none; } }
+
+/* Study card pictures: bigger on wide screens; tap one to see it full size */
+@media (min-width: 720px) { :root { --size-card-picture: 190px; } }
+.picture-zoom { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.picture-zoom .study-card__picture { max-width: 70%; max-height: 100%; }
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
+  padding: calc(env(safe-area-inset-top) + var(--space-10)) var(--space-5) calc(env(safe-area-inset-bottom) + var(--space-10));
+  background: color-mix(in srgb, var(--page-bg) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  cursor: zoom-out;
+}
+.lightbox__img { width: min(100%, 720px); max-height: 100%; height: auto; object-fit: contain; border-radius: 6px; }
+.lightbox__img.is-framed { outline: 1px solid var(--picture-frame); }
+.lightbox__close {
+  position: absolute; top: calc(env(safe-area-inset-top) + var(--space-4)); right: var(--space-4);
+  display: grid; place-items: center; width: var(--size-icon-button); height: var(--size-icon-button);
+  border: 0; border-radius: 50%; background: var(--outer-button-bg); color: var(--text-primary); cursor: pointer;
+}
+.lightbox__close .icon { width: 22px; height: 22px; }
+.study-card__prompt.has-picture, .study-card__picture-wrap { align-self: stretch; width: 100%; }

@@ -97,6 +97,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         <div className="guides">
           {GUIDES.map((g) => <GuideCard key={g.scene} guide={g} />)}
         </div>
+        <a className="btn btn--secondary hub__all" href={HELP} target="_blank" rel="noopener noreferrer"><span>Read all help and guides</span></a>
       </section>
     </div>
   );
@@ -159,12 +160,10 @@ function GuideCard({ guide }) {
     <a className="guide-card" href={guide.url} target="_blank" rel="noopener noreferrer">
       <span className="guide-card__stage" aria-hidden="true"><span className="guide-card__scene"><Scene /></span></span>
       <span className="guide-card__foot">
-        <span className="guide-card__text">
-          <span className="guide-card__title">{guide.title}</span>
-          <span className="guide-card__body">{guide.text}</span>
-        </span>
+        <span className="guide-card__title">{guide.title}</span>
         <button type="button" className="guide-card__share" aria-label={`Share the guide: ${guide.title}`} onClick={share}><Icon name="share" /></button>
       </span>
+      <span className="guide-card__body">{guide.text}</span>
     </a>
   );
 }
