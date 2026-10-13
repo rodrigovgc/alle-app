@@ -84,3 +84,28 @@ export function presetFor(subject, v, index = 0) {
     exampleBack: p.eb,
   };
 }
+
+/**
+ * The same request for Alle's own AI (api/generate-deck.js): no CSV formatting,
+ * the cards come back as structured data through a tool call.
+ */
+export function buildAppPrompt(v) {
+  const a = v.front.trim();
+  const b = v.back.trim();
+  return [
+    `Make ${v.count} flashcards for learning ${describeTopic(v)}. Level: ${v.level.toLowerCase()}.`,
+    ...(v.focus?.trim() ? [`Focus on: ${v.focus.trim()}.`] : []),
+    '',
+    'Each flashcard has two sides:',
+    `- Front ("${a}"): ${v.frontHint || 'the prompt'}.`,
+    `- Back ("${b}"): ${v.backHint || 'the answer'}. Keep it short enough to type from memory.`,
+    '',
+    v.alternatives
+      ? `- If more than one answer is right for "${b}", put them all in the back separated by a vertical bar, like: answer one|answer two`
+      : `- Give exactly one answer on the back.`,
+    '- No numbering, no explanations, no repeated fronts.',
+    '- Check that every answer is correct.',
+    '',
+    'Save the flashcards with the save_flashcards tool.',
+  ].join('\n');
+}

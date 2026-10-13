@@ -9,6 +9,7 @@ import { DeckImportError, parseLooseTable } from '../lib/csv.js';
 import { inferLang } from '../lib/speech.js';
 import { track } from '../lib/analytics.js';
 import { imageSrc, needsFrame } from '../lib/media.js';
+import { aiAllowance, generateCards } from '../lib/aiDeck.js';
 import {
   LEVELS, SIZES, SUBJECTS, buildPrompt, describeTopic, presetFor,
 } from '../lib/prompt.js';
@@ -308,8 +309,120 @@ const AI_LINKS = [
   { name: 'Gemini', url: () => 'https://gemini.google.com/app' },
 ];
 
-/** Overview, prompt and paste box, all on one page. */
-function FinishStep({ v, set, pasteOnly, onCreate, onBack }) {
+/*
+ * The last step. By default Alle's own AI makes the cards: one button, a preview you can
+ * edit, then Add deck. "Use your own AI instead" keeps the copy-the-prompt way.
+ */
+function FinishStep(props) {
+  const { pasteOnly } = props;
+  const [mode, setMode] = useState(pasteOnly ? 'own' : 'app');
+  return mode === 'own'
+    ? <OwnAiFinish {...props} onUseApp={pasteOnly ? null : () => setMode('app')} />
+    : <AppAiFinish {...props} onUseOwn={() => setMode('own')} />;
+}
+
+const AI_ERRORS = {
+  limit: 'You’ve used this month’s free AI decks. You can still use your own AI.',
+  not_available: 'Alle’s AI isn’t switched on yet. Use your own AI for now.',
+  signed_out: 'Sign in again to use Alle’s AI.',
+  offline: 'You seem to be offline. Check your connection and try again.',
+};
+
+function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
+  const [name, setName] = useState(() => v.name || (v.subject ? defaultDeckName(v) : ''));
+  const [allow, setAllow] = useState(null);
+  const [state, setState] = useState({ status: 'idle', cards: null, error: '', preview: false });
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  useEffect(() => { let alive = true; aiAllowance().then((a) => alive && setAllow(a)); return () => { alive = false; }; }, []);
+
+  const spec = { ...v, front: v.front, back: v.back };
+  async function make() {
+    setState((s) => ({ ...s, status: 'loading', error: '' }));
+    try {
+      const r = await generateCards(spec);
+      setState({ status: 'done', cards: r.cards, error: '', preview: Boolean(r.preview) });
+      setAllow((a) => (a ? { ...a, left: r.left } : a));
+      track('ai_deck_generated', { subject: v.subject, cards: r.cards.length });
+    } catch (e) {
+      const msg = AI_ERRORS[e.code] || 'The cards couldn’t be made this time. Try again, or use your own AI.';
+      if (e.code === 'limit') setAllow((a) => (a ? { ...a, left: 0 } : a));
+      setState((s) => ({ ...s, status: s.cards ? 'done' : 'idle', error: msg }));
+    }
+  }
+  const editCard = (i, patch) => setState((s) => ({ ...s, cards: s.cards.map((c, j) => (j === i ? { ...c, ...patch } : c)) }));
+  const removeCard = (i) => setState((s) => ({ ...s, cards: s.cards.filter((_, j) => j !== i) }));
+  const ready = (state.cards || []).filter((c) => c.front.trim() && c.back.trim());
+
+  async function add() {
+    if (!ready.length) return;
+    setBusy(true); setSaveError('');
+    try {
+      track('ai_deck_created', { subject: v.subject, learning: v.subject === 'language' ? v.learning : undefined, inApp: true });
+      await onCreate({
+        title: name.trim() || v.back,
+        csv_url: null,
+        front_label: v.front.trim(),
+        back_label: v.back.trim(),
+        lang: inferLang(v.subject === 'language' ? v.learning : v.back),
+        cards: ready.map((c) => ({ front: c.front.trim(), back: c.back.trim() })),
+      });
+    } catch (e) { setSaveError(e.message); setBusy(false); }
+  }
+
+  const facts = [`${v.count} cards`, v.level, `${v.front} → ${v.back}`, v.focus.trim() && `Focus: ${v.focus.trim()}`].filter(Boolean);
+  const out = allow && (!allow.enabled || allow.left <= 0);
+  const allowText = !allow ? '' : !allow.enabled ? AI_ERRORS.not_available
+    : allow.left <= 0 ? AI_ERRORS.limit
+    : allow.left >= 999 ? '' : `${allow.left} of ${allow.limit} free AI ${allow.limit === 1 ? 'deck' : 'decks'} left this month.`;
+
+  return (
+    <>
+      <DeckNameHeading v={{ ...v, name }} set={(p) => { if ('name' in p) { setName(p.name); set(p); } }} />
+      <p className="finish-facts">{facts.join(' · ')}</p>
+
+      {state.status !== 'done' && (
+        <div className="ai-make">
+          {state.status === 'loading' ? (
+            <div className="ai-make__loading" role="status"><span className="mini-spinner" aria-hidden="true" />Writing your cards…</div>
+          ) : (
+            <Button icon="sparkle" onClick={make} disabled={out}>Create my deck</Button>
+          )}
+          {allowText && state.status !== 'loading' && <p className="field__hint">{allowText}</p>}
+        </div>
+      )}
+      {state.error && <p className="form-error" role="alert">{state.error}</p>}
+
+      {state.status === 'done' && state.cards && (
+        <div className="ai-cards" aria-label="Your new cards">
+          <p className="preview-list__head">{ready.length} cards · {v.front} → {v.back}</p>
+          {state.preview && <p className="field__hint">Pretend cards: Alle’s AI isn’t switched on in this test version yet.</p>}
+          <ol className="ai-cards__list">
+            {state.cards.map((c, i) => (
+              <li key={i} className="ai-cards__row">
+                <input className="ai-cards__input" value={c.front} aria-label={`Card ${i + 1}, ${v.front}`} onChange={(e) => editCard(i, { front: e.target.value })} />
+                <input className="ai-cards__input" value={c.back} aria-label={`Card ${i + 1}, ${v.back}`} onChange={(e) => editCard(i, { back: e.target.value })} />
+                <button type="button" className="ai-cards__remove" aria-label={`Remove card ${i + 1}`} onClick={() => removeCard(i)}><Icon name="close" /></button>
+              </li>
+            ))}
+          </ol>
+          <p className="field__hint">Check the cards. AI can make mistakes, and you can fix any card here.</p>
+          {!out && <button type="button" className="text-btn ai-cards__again" onClick={make} disabled={state.status === 'loading'}>Make different cards</button>}
+        </div>
+      )}
+
+      {saveError && <p className="form-error" role="alert">{saveError}</p>}
+      <SheetActions>
+        {state.status === 'done' && <Button onClick={add} disabled={!ready.length || busy}>{busy ? 'Adding…' : 'Add deck'}</Button>}
+        {onBack && <Button variant="secondary" onClick={onBack}>Back</Button>}
+        <button type="button" className="text-btn" onClick={onUseOwn}>Use your own AI instead</button>
+      </SheetActions>
+    </>
+  );
+}
+
+/** Your own AI: the prompt to copy (or open in an AI chat), and the box to paste the reply into. */
+function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
   const prompt = useMemo(() => (pasteOnly ? '' : buildPrompt({ ...v, topicFocus: v.focus })), [v, pasteOnly]);
   const [copied, setCopied] = useState(false);
   const [raw, setRaw] = useState('');
@@ -425,6 +538,7 @@ function FinishStep({ v, set, pasteOnly, onCreate, onBack }) {
       <SheetActions>
         <Button onClick={create} disabled={!parsed?.deck || busy}>{busy ? 'Creating…' : 'Create deck'}</Button>
         {onBack && <Button variant="secondary" onClick={onBack}>Back</Button>}
+        {onUseApp && <button type="button" className="text-btn" onClick={onUseApp}>Let Alle make the cards</button>}
       </SheetActions>
     </>
   );

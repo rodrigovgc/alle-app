@@ -195,3 +195,10 @@ so clean it up only carefully, in its own commit).
 Earlier work (design system, study modes, fix-up round, onboarding tour, emails,
 security fixes, sharing, dashboard) is summarised in the commit history:
 `git log --oneline` in each repo has descriptive messages.
+
+## Alle's own AI (test branch: test/home-tabs)
+- The AI builder's last step makes the cards in the app: `api/generate-deck.js` (Vercel function) → Claude, with an editable preview before Add deck. "Use your own AI instead" keeps the copy-the-prompt flow.
+- Only signed-in people; `AI_MONTHLY_FREE` decks a month each (default 3), counted in `ai_generations` (run `supabase/012_ai_decks.sql`).
+- Env vars (Vercel): `ANTHROPIC_API_KEY` (required to switch it on), optional `AI_MODEL` (default `claude-haiku-5-5`), `AI_MONTHLY_FREE`, `AI_UNLIMITED_EMAILS` (comma list, e.g. the owner).
+- Without a key: test builds return pretend cards; the live app says AI isn't switched on yet. Demo mode makes pretend cards in the browser (`src/lib/aiDeck.js`).
+- Before going live: add a paragraph to the website's privacy page (builder choices are sent to Anthropic to write the cards) and set a monthly spend limit in the Anthropic Console.

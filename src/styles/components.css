@@ -918,3 +918,17 @@ select.input { background-image: none; }
   width: var(--size-group-preview-shape); height: var(--size-group-preview-shape);
 }
 .group-preview__more { padding: var(--space-1) var(--space-3) var(--space-1); font-size: var(--font-size-caption); color: var(--text-secondary); }
+
+/* Alle's own AI: make the cards, then check and edit them before adding the deck */
+.ai-make { display: flex; flex-direction: column; gap: var(--space-2); }
+.ai-make__loading { display: flex; align-items: center; justify-content: center; gap: var(--space-3); height: var(--size-button); border-radius: var(--radius-button); background: var(--color-surface); color: var(--text-secondary); font-size: var(--font-size-small); }
+.ai-make__loading .mini-spinner { --deck-ink: var(--text-primary); width: 16px; height: 16px; }
+.ai-cards { display: flex; flex-direction: column; gap: var(--space-2); }
+.ai-cards__list { display: flex; flex-direction: column; gap: var(--space-2); max-height: 44vh; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.ai-cards__row { display: grid; grid-template-columns: 1fr 1fr 32px; gap: var(--space-2); align-items: center; }
+.ai-cards__input { min-width: 0; height: 40px; padding: 0 var(--space-3); border: 0; border-radius: 12px; background: var(--color-surface); color: var(--text-primary); font: inherit; font-size: var(--font-size-small); outline: none; }
+.ai-cards__input:focus { box-shadow: 0 0 0 1.5px var(--border-selected); }
+.ai-cards__remove { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--text-tertiary); cursor: pointer; }
+.ai-cards__remove:hover { color: var(--text-primary); background: var(--color-surface); }
+.ai-cards__remove .icon { width: 18px; height: 18px; }
+.ai-cards__again { align-self: flex-start; padding-left: 0; }
