@@ -43,7 +43,7 @@
   --tag-wrong-bg:   var(--deck-red);     --tag-wrong-border:   var(--deck-red-deep);
 
   /* ---- Semantic roles ---------------------------------------------------- */
-  --page-bg:           #F3F0E7;                   /* screen background: warm beige, white cards sit on it */
+  --page-bg:           #F7F5EF;                   /* screen background: warm beige, white cards sit on it */
   --card-bg:           var(--color-background);   /* study card, sheets     */
   --text-primary:      var(--color-foreground);
   --text-secondary:    var(--grey-400);
@@ -66,7 +66,7 @@
   --choice-bg:         var(--color-surface);      /* builder choices and chips */
   --search-field-bg:   var(--color-surface-deep);  /* expanded search: reads as an input */
   --inner-button-bg:   var(--color-surface);      /* icon buttons inside a card/sheet (on white)     */
-  --outer-button-bg:   var(--color-surface-deep); /* icon buttons on the page: deeper beige on the beige page */
+  --outer-button-bg:   color-mix(in srgb, var(--color-surface-deep) 55%, var(--color-surface)); /* icon buttons on the page: a step deeper than the page */
   --secondary-bg:      var(--color-surface);      /* secondary buttons                               */
   --picture-frame:     var(--grey-200);           /* outline on flags so white edges show */
   --mark-wrong-bg:     var(--deck-red);           /* letters typed wrong                    */
@@ -174,7 +174,7 @@
   /* Layered shadows, like Figma's "Beautiful Shadows": six stacked layers that grow
      and fade, so a raised surface reads as lit, not outlined. Warm brown in light mode. */
   --shadow-rgb: 74 56 28;
-  --shadow-k: 1;
+  --shadow-k: 0.6;   /* overall strength of the shadows */
   --shadow-card:
     0 64px 51.2px rgb(var(--shadow-rgb) / calc(0.100 * var(--shadow-k))),
     0 26.74px 21.39px rgb(var(--shadow-rgb) / calc(0.072 * var(--shadow-k))),
