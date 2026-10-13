@@ -4,6 +4,10 @@ import { DeckShape, Icon, Logo } from './Icon.jsx';
 import { SCENES } from './Scenes.jsx';
 import { READY_MADE, LIBRARY, SAMPLE_DECKS } from '../lib/sampleDeck.js';
 import { deckColorVars, deckShape, SPRING } from '../styles/tokens.js';
+import { track } from '../lib/analytics.js';
+
+// What people use on Home, for the owner dashboard (name only, no content)
+const homeAction = (what) => track('home_action', { what });
 
 /*
  * Home (the overview tab): ways to make a deck, decks to pick up again, sample
@@ -57,17 +61,17 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
       <section className="hub__section" aria-labelledby="hub-create">
         <h2 id="hub-create" className="hub__title">Create your own deck</h2>
         <div className="create-grid">
-          <button type="button" className="create-card" onClick={onAi}>
+          <button type="button" className="create-card" onClick={() => { homeAction('create_ai'); onAi(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
             <span className="create-card__title">Create a new deck with AI</span>
             <span className="create-card__hint">Say what you want to learn. Your AI writes the cards.</span>
           </button>
-          <button type="button" className="create-card" onClick={onImport}>
+          <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
             <span className="create-card__title">Import from Google Sheets</span>
             <span className="create-card__hint">Paste the link to a sheet with two columns.</span>
           </button>
-          <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer">
+          <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Start from a Google Sheet template</span>
@@ -93,7 +97,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         <section className="hub__section" aria-labelledby="hub-samples">
           <div className="hub__head">
             <h2 id="hub-samples" className="hub__title">Add a sample deck</h2>
-            <button type="button" className="hub__close" aria-label="Hide sample decks" title="Hide sample decks" onClick={hideSamples}><Icon name="close" /></button>
+            <button type="button" className="hub__close" aria-label="Hide sample decks" title="Hide sample decks" onClick={() => { homeAction('hide_samples'); hideSamples(); }}><Icon name="close" /></button>
           </div>
           <div className="hub__row">
             {samples.map((r) => <SampleTile key={r.key} sample={r} onAdd={() => onAddSample(r.key)} />)}
@@ -106,12 +110,12 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         <div className="guides">
           {GUIDES.map((g) => <GuideCard key={g.scene} guide={g} />)}
         </div>
-        <a className="hub__all" href={HELP} target="_blank" rel="noopener noreferrer">Read all help and guides<Icon name="arrow" /></a>
+        <a className="hub__all" href={HELP} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('all_guides')}>Read all help and guides<Icon name="arrow" /></a>
       </section>
 
       {samplesHidden && decks.length > 0 && samples.length > 0 && (
         <footer className="hub__foot">
-          <button type="button" className="hub__show" onClick={() => onSamplesHidden(false)}>Show sample decks</button>
+          <button type="button" className="hub__show" onClick={() => { homeAction('show_samples'); onSamplesHidden(false); }}>Show sample decks</button>
         </footer>
       )}
     </div>
@@ -127,7 +131,7 @@ function ContinueCard({ deck, mode, progress, due, onOpen }) {
       type="button"
       className="continue-card"
       style={{ '--deck-fill': fill, '--deck-deep': deep, '--deck-ink': ink, '--deck-ink-2': ink2 }}
-      onClick={onOpen}
+      onClick={() => { homeAction('continue'); onOpen(); }}
       aria-label={`${deck.title}, ${pct}% studied${due ? `, ${due} due` : ''}. Study now`}
     >
       <span className="continue-card__badge" aria-hidden="true"><DeckShape shape={deckShape(deck)} /></span>
@@ -152,7 +156,7 @@ function SampleTile({ sample, onAdd }) {
       style={{ '--deck-fill': fill, '--deck-deep': deep, '--deck-ink': ink, '--deck-ink-2': ink2 }}
       disabled={busy}
       aria-label={`Add the sample deck ${sample.title}`}
-      onClick={async () => { setBusy(true); try { await onAdd(); } finally { setBusy(false); } }}
+      onClick={async () => { homeAction('add_sample'); setBusy(true); try { await onAdd(); } finally { setBusy(false); } }}
     >
       {info.front_label && <span className="deck__meta">{info.front_label}<Icon name="arrow" className="deck__arrow" />{info.back_label}</span>}
       <span className="sample-tile__title">{sample.title}</span>
@@ -172,7 +176,7 @@ function GuideCard({ guide }) {
     } catch { /* closed the share sheet */ }
   };
   return (
-    <a className="guide-card" href={guide.url} target="_blank" rel="noopener noreferrer">
+    <a className="guide-card" href={guide.url} target="_blank" rel="noopener noreferrer" onClick={() => homeAction(`guide_${guide.scene}`)}>
       <span className="guide-card__stage" aria-hidden="true"><span className="guide-card__scene"><Scene /></span></span>
       <span className="guide-card__foot">
         <span className="guide-card__title">{guide.title}</span>
