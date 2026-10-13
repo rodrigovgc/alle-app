@@ -675,3 +675,134 @@
 .group__head { padding-top: var(--space-6); padding-bottom: var(--space-4); }
 .group__head .group__title { padding-top: 0; padding-bottom: 0; }
 .group__chevron-btn { align-self: center; }
+
+/* ==========================================================================
+   Home tab + tab bar (test branch: test/home-tabs)
+   ========================================================================== */
+:root { --size-tabbar: 66px; --size-tab-add: 64px; }
+.home { padding-bottom: calc(var(--size-tabbar) + var(--space-10) + env(safe-area-inset-bottom)); }
+.home__logo-btn { display: flex; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+
+.hub { display: flex; flex-direction: column; gap: var(--space-8); padding-top: var(--space-4); }
+.hub__section { display: flex; flex-direction: column; gap: var(--space-4); }
+.hub__title {
+  padding: 0 var(--gutter);
+  font-size: var(--font-size-small-title); font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-title);
+}
+
+/* The three ways to make a deck: two cards side by side, the template under them */
+.create-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); padding: 0 var(--gutter); }
+.create-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);
+  min-height: 168px; padding: var(--space-4);
+  border: 1px solid var(--start-tile-border); border-radius: var(--radius-deck);
+  background: var(--card-bg); color: var(--text-primary);
+  box-shadow: 0 10px 24px -18px rgb(12 12 12 / 0.25);
+  text-align: left; text-decoration: none; cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.create-card:active { transform: scale(0.98); }
+.create-card__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--ink); margin-bottom: var(--space-2); flex: none; }
+.create-card__icon .icon { width: 24px; height: 24px; }
+.create-card__title { font-size: var(--font-size-button); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); letter-spacing: -0.01em; }
+.create-card__hint { font-size: var(--font-size-caption); line-height: 1.35; color: var(--text-secondary); }
+.create-card--wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: var(--space-4); min-height: 0; }
+.create-card--wide .create-card__icon { margin-bottom: 0; }
+.create-card__text { display: flex; flex-direction: column; gap: var(--space-1); flex: 1; min-width: 0; }
+.create-card__go { width: 20px; height: 20px; color: var(--text-tertiary); flex: none; }
+
+/* Sideways rows: Continue learning, sample decks */
+.hub__row {
+  display: flex; gap: var(--space-3); overflow-x: auto;
+  padding: 0 var(--gutter) var(--space-2); scroll-padding: 0 var(--gutter);
+  scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+}
+.hub__row::-webkit-scrollbar { display: none; }
+.continue-card, .sample-tile {
+  position: relative; overflow: hidden; flex: none; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: flex-start;
+  border: 0; text-align: left; color: var(--deck-ink); background: var(--deck-fill);
+  cursor: pointer; transition: transform var(--duration-fast) var(--ease-out);
+}
+.continue-card:active, .sample-tile:active:not(:disabled) { transform: scale(0.985); }
+.continue-card .deck__meta, .sample-tile .deck__meta { position: relative; z-index: 1; color: var(--deck-ink-2); }
+.continue-card { width: min(82%, 340px); min-height: 156px; padding: var(--space-5) var(--space-6); border-radius: var(--radius-deck); }
+.continue-card .deck__meta { margin-bottom: var(--space-2); }
+.continue-card__title {
+  position: relative; z-index: 1; max-width: 78%;
+  font-size: 22px; font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-title);
+}
+.continue-card__progress { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--space-3); width: 100%; margin-top: auto; padding-top: var(--space-5); }
+.continue-card__track { flex: 1; height: var(--size-progress); border-radius: 2px; background: color-mix(in srgb, var(--deck-ink) 14%, transparent); overflow: hidden; }
+.continue-card__fill { display: block; height: 100%; border-radius: 2px; background: var(--deck-ink); }
+.continue-card__pct { font-size: var(--font-size-small); color: var(--deck-ink-2); font-variant-numeric: tabular-nums; }
+.continue-card .deck-shape { top: var(--space-5); right: var(--space-5); bottom: auto; width: 76px; height: 76px; }
+
+.sample-tile { width: min(60%, 240px); min-height: 118px; padding: var(--space-4) var(--space-5); border-radius: 22px; }
+.sample-tile .deck__meta { margin-bottom: var(--space-1); max-width: calc(100% - 40px); }
+.sample-tile__title { position: relative; z-index: 1; max-width: 72%; font-size: 18px; font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-title); }
+.sample-tile__add {
+  position: absolute; z-index: 2; top: var(--space-3); right: var(--space-3);
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--card-bg); color: var(--text-primary); box-shadow: 0 4px 12px -4px rgb(12 12 12 / 0.2);
+}
+.sample-tile__add .icon { width: 20px; height: 20px; }
+.sample-tile .deck-shape { right: var(--space-4); bottom: var(--space-3); width: 58px; height: 58px; }
+.sample-tile.is-busy { animation: cardPulse 1.1s ease-in-out infinite; }
+
+/* Help guides, with the tour's own little scenes */
+.guides { display: grid; gap: var(--space-5); padding: 0 var(--gutter); }
+.guide-card { display: flex; flex-direction: column; gap: var(--space-3); color: var(--text-primary); text-decoration: none; }
+.guide-card__stage {
+  position: relative; display: grid; place-items: center; height: 240px; overflow: hidden;
+  border-radius: var(--radius-deck); background: var(--start-tile-bg); border: 1px solid var(--start-tile-border);
+}
+.guide-card__scene { display: block; transform: scale(0.8); }
+.guide-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-left: var(--space-1); }
+.guide-card__title { font-size: var(--font-size-button); font-weight: var(--font-weight-medium); line-height: var(--line-height-tight); }
+.guide-card__share { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--text-primary); cursor: pointer; }
+.guide-card__share .icon { width: 22px; height: 22px; }
+
+/* Tab bar: a floating glass capsule with the two tabs, and the round + on its own (iOS 26 style) */
+.tabbar {
+  position: fixed; z-index: calc(var(--z-sticky) + 1); left: 0; right: 0; bottom: 0;
+  max-width: var(--screen-max); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--gutter) max(env(safe-area-inset-bottom), var(--space-4));
+  pointer-events: none;
+}
+.tabbar__tabs {
+  pointer-events: auto; display: flex; gap: 2px; padding: 4px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-background) 84%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
+  box-shadow: 0 12px 32px -14px rgb(12 12 12 / 0.28), 0 0 0 0.5px rgb(12 12 12 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.55);
+}
+.tabbar__tab {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  width: 90px; height: calc(var(--size-tabbar) - 8px); border: 0; border-radius: var(--radius-pill);
+  background: none; color: var(--text-primary); font-size: 12px; font-weight: var(--font-weight-medium); line-height: 1; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabbar__tab .icon, .tabbar__label { position: relative; z-index: 1; }
+.tabbar__tab .icon { width: 26px; height: 26px; }
+.tabbar__pill { position: absolute; inset: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-surface-deep) 50%, var(--color-surface)); }
+.tabbar__add {
+  pointer-events: auto; display: grid; place-items: center;
+  width: var(--size-tab-add); height: var(--size-tab-add); border: 0; border-radius: 50%;
+  background: var(--cta-bg); color: var(--cta-fg); cursor: pointer;
+  box-shadow: 0 14px 30px -12px rgb(12 12 12 / 0.5);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.tabbar__add:active, .tabbar__tab:active { transform: scale(0.95); }
+.tabbar__add .icon { width: 30px; height: 30px; }
+:root[data-theme="dark"] .tabbar__tabs { box-shadow: 0 12px 32px -14px rgb(0 0 0 / 0.7), 0 0 0 0.5px rgb(255 255 255 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.06); }
+
+@media (min-width: 720px) {
+  .create-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .create-card--wide { grid-column: auto; flex-direction: column; align-items: flex-start; min-height: 168px; gap: var(--space-2); }
+  .create-card--wide .create-card__icon { margin-bottom: var(--space-2); }
+  .create-card--wide .create-card__go { display: none; }
+  .guides { grid-template-columns: 1fr 1fr; }
+  .tabbar { max-width: var(--home-max); }
+}

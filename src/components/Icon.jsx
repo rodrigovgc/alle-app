@@ -15,7 +15,7 @@ export function Icon({ name, size, className = '', label }) {
       {icon.fills
         ? icon.fills.map((d, i) => <path key={i} d={d} fill="currentColor" fillRule="evenodd" clipRule="evenodd" />)
         : icon.stroke
-          ? <path d={icon.d} fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          ? <path d={icon.d} fill="none" stroke="currentColor" strokeWidth={icon.sw || 1.4} strokeLinecap="round" strokeLinejoin="round" />
           : <path d={icon.d} fill="currentColor" />}
     </svg>
   );

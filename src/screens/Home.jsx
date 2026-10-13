@@ -8,7 +8,6 @@ import { GroupedBoard } from '../components/GroupedBoard.jsx';
 import { AutoInput } from '../components/AutoInput.jsx';
 import { Sheet, Field, SheetActions } from '../components/Sheet.jsx';
 import { AiBuilder } from '../components/AiBuilder.jsx';
-import { useScrollShrink } from '../lib/useScrollShrink.js';
 import { usePullToRefresh } from '../lib/usePullToRefresh.js';
 import { initials, fullName } from '../lib/person.js';
 import { ReorderList } from '../components/ReorderList.jsx';
@@ -17,6 +16,7 @@ import { useMediaQuery } from '../lib/useMediaQuery.js';
 import { Segmented } from '../components/Segmented.jsx';
 import { Account, ThemeSettings } from '../components/Account.jsx';
 import { READY_MADE } from '../lib/sampleDeck.js';
+import { HomeOverview, TabBar } from '../components/HomeHub.jsx';
 import { answerMode } from '../lib/srs.js';
 import { fetchSheetName, fetchDeckFromUrl } from '../lib/csv.js';
 import { LANGUAGES, inferLang } from '../lib/speech.js';
@@ -25,7 +25,7 @@ import { DECK_COLORS, DECK_COLOR_LABELS, DECK_SHAPES, NO_COLOR, SPRING, deckColo
 const HELP_URL = 'https://allecards.app/help';
 
 export function Home({
-  decks, loading, dueByDeck, colorMode,
+  decks, loading, dueByDeck, progressByDeck = {}, colorMode,
   onAddSample, onColorMode, onStudyDeck, onShuffle,
   onAddDeck, onUpdateDeck, onRemoveDeck, onResetProgress, onReorder, onRainbow, onRefresh, onSignOut, user, onUserUpdated,
   onShareDeck, onStopSharing, onHelp, onMoveDecks,
@@ -36,6 +36,15 @@ export function Home({
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
   const [sheet, setSheet] = useState(null); // { type, deck? }
+  // Two tabs: Home (overview, ways to start) and Decks (the list and groups).
+  const [tab, setTabState] = useState(() => {
+    try { return sessionStorage.getItem('alle-tab') || 'home'; } catch { return 'home'; }
+  });
+  const setTab = (t) => {
+    setTabState(t);
+    try { sessionStorage.setItem('alle-tab', t); } catch { /* private mode */ }
+    window.scrollTo({ top: 0, behavior: t === tab ? 'smooth' : 'auto' });
+  };
   const headerRef = useRef(null);
   const shellPill = useMemo(() => tokenNumber('--size-search-pill', 98), []);
   const [shellFull, setShellFull] = useState(shellPill);
@@ -50,7 +59,7 @@ export function Home({
     return () => ro.disconnect();
   }, []);
 
-  function openSearch() { setSearching(true); }
+  function openSearch() { setSearching(true); if (tab !== 'decks') setTab('decks'); }
   function closeSearch() { setSearching(false); setQuery(''); }
 
   const visible = useMemo(() => {
@@ -63,10 +72,10 @@ export function Home({
   // A new deck made from an empty group's "Add a new deck" goes into that group
   const [addTo, setAddTo] = useState(null);
   const close = () => { setSheet(null); setAddTo(null); };
-  const addDeck = (deck) => onAddDeck(addTo ? { ...deck, group_id: addTo } : deck);
+  // A deck you made yourself shows up on the Decks tab, so you see where it went
+  const addDeck = async (deck) => { const r = await onAddDeck(addTo ? { ...deck, group_id: addTo } : deck); setTab('decks'); return r; };
   const addSample = (key) => onAddSample(key, addTo);
   const addToTitle = addTo ? groups?.find((g) => g.id === addTo)?.title : null;
-  const ctaCompact = useScrollShrink();
   // A mouse or trackpad: decks can be dragged into place directly.
   const canDrag = useMediaQuery('(hover: hover) and (pointer: fine)');
   // Reorder mode: a working copy of the order, saved on Done.
@@ -124,18 +133,10 @@ export function Home({
           transition={{ duration: searching ? 0.12 : 0.2, delay: searching ? 0 : 0.12 }}
           aria-hidden={searching}
         >
-          <Logo />
+          <button type="button" className="home__logo-btn" aria-label="Alle, go to Home" onClick={() => { closeSearch(); setTab('home'); }}><Logo /></button>
         </motion.div>
 
         <div className="home__actions">
-          <motion.div
-            initial={false}
-            animate={{ opacity: searching ? 0 : 1 }}
-            transition={{ duration: searching ? 0.12 : 0.2, delay: searching ? 0 : 0.12 }}
-            style={{ pointerEvents: searching ? 'none' : 'auto' }}
-          >
-            <IconButton icon="plus" label="Add deck" onClick={() => setSheet({ type: 'choose' })} tabIndex={searching ? -1 : 0} />
-          </motion.div>
           <div className="pill-slot" aria-hidden="true" />
           <Menu
             open={menuOpen}
@@ -213,6 +214,23 @@ export function Home({
         </motion.div>
       </header>
 
+      {tab === 'home' && !searching && !reordering && (
+        <>
+          <h1 className="visually-hidden">Home</h1>
+          <HomeOverview
+            decks={decks}
+            colorMode={colorMode}
+            progressByDeck={progressByDeck}
+            dueByDeck={dueByDeck}
+            onAi={() => setSheet({ type: 'ai' })}
+            onImport={() => setSheet({ type: 'add' })}
+            onStudy={onStudyDeck}
+            onAddSample={(key) => onAddSample(key, null)}
+          />
+        </>
+      )}
+
+      {(tab === 'decks' || searching || reordering) && <>
       {grouped ? <h1 className="visually-hidden">My study decks</h1> : (loading || decks.length > 0) && (
         <div className="home__title-row">
           <h1 className="home__title">{reordering ? order.title : 'My study decks'}</h1>
@@ -329,12 +347,9 @@ export function Home({
           ))}
         </AnimatePresence>}
       </section>
+      </>}
 
-      {decks.length > 0 && !reordering && (
-        <div className={`home__cta ${ctaCompact ? 'is-compact' : ''}`}>
-          <Button icon="plus" onClick={() => setSheet({ type: 'choose' })}>Add new deck</Button>
-        </div>
-      )}
+      {!reordering && <TabBar tab={searching ? 'decks' : tab} onTab={(t) => { if (searching) closeSearch(); setTab(t); }} onAdd={() => setSheet({ type: 'choose' })} />}
 
       <Sheet open={sheet?.type === 'choose'} onClose={close} title="Create your own deck" variant="dialog">
         <div className="sheet__body">

@@ -299,6 +299,21 @@ function Library({ user, onUser }) {
     return out;
   }, [allCards]);
 
+  // For "Continue learning" on Home: how much of each deck has been studied, and when last
+  const progressByDeck = useMemo(() => {
+    const out = {};
+    for (const c of allCards) {
+      const p = (out[c.deckId] ||= { seen: 0, total: 0, last: 0 });
+      p.total += 1;
+      if (c.progress) {
+        p.seen += 1;
+        const t = Date.parse(c.progress.last_reviewed_at || '') || 0;
+        if (t > p.last) p.last = t;
+      }
+    }
+    return out;
+  }, [allCards]);
+
   function start(deckIds, { mix = false, practice = false } = {}) {
     const pool = allCards.filter((c) => deckIds.includes(c.deckId));
     const cards = buildSession(pool, { mix, practice });
@@ -358,6 +373,7 @@ function Library({ user, onUser }) {
         decks={decks}
         loading={loading || !ready}
         dueByDeck={dueByDeck}
+        progressByDeck={progressByDeck}
         colorMode={colorMode}
         onAddSample={addReadyMade}
         onColorMode={(mode) => setPrefs({ color_mode: mode })}
