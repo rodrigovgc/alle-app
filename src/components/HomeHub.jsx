@@ -92,6 +92,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
 function ContinueCard({ deck, mode, progress, due, onOpen }) {
   const { fill, deep, ink, ink2 } = deckColorVars(deck.color, mode);
   const pct = progress.total ? Math.round((progress.seen / progress.total) * 100) : 0;
+  // White card: the deck's colour lives in a small badge with its shape, and in the progress bar
   return (
     <button
       type="button"
@@ -100,13 +101,13 @@ function ContinueCard({ deck, mode, progress, due, onOpen }) {
       onClick={onOpen}
       aria-label={`${deck.title}, ${pct}% studied${due ? `, ${due} due` : ''}. Study now`}
     >
-      <span className="deck__meta">{deck.front_label}<Icon name="arrow" className="deck__arrow" />{deck.back_label}</span>
+      <span className="continue-card__badge" aria-hidden="true"><DeckShape shape={deckShape(deck)} /></span>
+      <span className="continue-card__meta">{deck.front_label}<Icon name="arrow" className="deck__arrow" />{deck.back_label}</span>
       <span className="continue-card__title">{deck.title}</span>
       <span className="continue-card__progress">
         <span className="continue-card__track"><span className="continue-card__fill" style={{ width: `${pct}%` }} /></span>
         <span className="continue-card__pct">{pct}%</span>
       </span>
-      <DeckShape shape={deckShape(deck)} />
     </button>
   );
 }
@@ -178,7 +179,7 @@ export function TabBar({ tab, onTab, onAdd }) {
 }
 
 /** Desktop: a sidebar instead of the tab bar. */
-export function Sidebar({ tab, onTab, onAdd, groups, onGroup, onTour }) {
+export function Sidebar({ tab, onTab, groups, onGroup, onTour, onAccount, onTheme, userName, userInitials }) {
   const TABS = [
     { key: 'home', label: 'Home', icon: 'home', active: 'homeActive' },
     { key: 'decks', label: 'Decks', icon: 'decks', active: 'decksActive' },
@@ -186,7 +187,6 @@ export function Sidebar({ tab, onTab, onAdd, groups, onGroup, onTour }) {
   return (
     <aside className="side" aria-label="Main">
       <button type="button" className="side__logo" aria-label="Alle, go to Home" onClick={() => onTab('home')}><Logo /></button>
-      <button type="button" className="side__new" onClick={onAdd}><Icon name="plus" />New deck</button>
       <nav className="side__nav">
         {TABS.map((t) => {
           const on = tab === t.key;
@@ -208,8 +208,12 @@ export function Sidebar({ tab, onTab, onAdd, groups, onGroup, onTour }) {
         </nav>
       )}
       <div className="side__foot">
+        <button type="button" className="side__item" onClick={onTheme}><Icon name="theme" />Theme</button>
         <button type="button" className="side__item" onClick={onTour}><Icon name="help" />Quick tutorial</button>
         <a className="side__item" href={HELP} target="_blank" rel="noopener noreferrer"><Icon name="article" />Help and guides</a>
+        <button type="button" className="side__item side__account" onClick={onAccount}>
+          <span className="avatar" aria-hidden="true">{userInitials}</span><span className="side__text">{userName}</span>
+        </button>
       </div>
     </aside>
   );

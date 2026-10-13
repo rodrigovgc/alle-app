@@ -129,10 +129,13 @@ export function Home({
       <Sidebar
         tab={searching ? 'decks' : tab}
         onTab={(t) => { if (searching) closeSearch(); setTab(t); }}
-        onAdd={() => setSheet({ type: 'choose' })}
         groups={groupsOn ? sortedGroups : []}
         onGroup={goToGroup}
         onTour={onHelp}
+        onAccount={() => setSheet({ type: 'account' })}
+        onTheme={() => setSheet({ type: 'theme' })}
+        userName={fullName(user) || user.email}
+        userInitials={initials(user)}
       />
     )}
     <main className={`home ${wide ? 'home--side' : ''}`} style={ptr.pull ? { transform: `translateY(${ptr.pull}px)`, transition: 'none' } : undefined}>
@@ -142,6 +145,27 @@ export function Home({
           {ptr.refreshing && <span className="visually-hidden">Refreshing</span>}
         </div>
       )}
+      {wide ? (
+        /* Desktop: search in the middle, New deck on the right; account and theme live in the sidebar */
+        <header className="home__header home__header--wide">
+          <span />
+          <label className="wide-search">
+            <Icon name="search" className="wide-search__icon" />
+            <input
+              type="search"
+              placeholder="Search decks"
+              aria-label="Search decks"
+              value={query}
+              enterKeyHint="search"
+              onChange={(e) => { const v = e.target.value; setQuery(v); setSearching(Boolean(v.trim())); }}
+              onKeyDown={(e) => e.key === 'Escape' && closeSearch()}
+            />
+          </label>
+          <div className="home__header-end">
+            <Button icon="plus" onClick={() => setSheet({ type: 'choose' })}>New deck</Button>
+          </div>
+        </header>
+      ) : (
       <header className="home__header" ref={headerRef}>
         {/* Logo and + only fade: nothing is scaled or moved, so nothing distorts */}
         <motion.div
@@ -231,6 +255,7 @@ export function Home({
           </AnimatePresence>
         </motion.div>
       </header>
+      )}
 
       {tab === 'home' && !searching && !reordering && (
         <>
