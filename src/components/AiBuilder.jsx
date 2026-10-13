@@ -400,8 +400,8 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
           <ol className="ai-cards__list">
             {state.cards.map((c, i) => (
               <li key={i} className="ai-cards__row">
-                <input className="ai-cards__input" value={c.front} aria-label={`Card ${i + 1}, ${v.front}`} onChange={(e) => editCard(i, { front: e.target.value })} />
-                <input className="ai-cards__input" value={c.back} aria-label={`Card ${i + 1}, ${v.back}`} onChange={(e) => editCard(i, { back: e.target.value })} />
+                <textarea className="ai-cards__input" rows={1} value={c.front} aria-label={`Card ${i + 1}, ${v.front}`} onChange={(e) => editCard(i, { front: e.target.value })} />
+                <textarea className="ai-cards__input" rows={1} value={c.back} aria-label={`Card ${i + 1}, ${v.back}`} onChange={(e) => editCard(i, { back: e.target.value })} />
                 <button type="button" className="ai-cards__remove" aria-label={`Remove card ${i + 1}`} onClick={() => removeCard(i)}><Icon name="close" /></button>
               </li>
             ))}

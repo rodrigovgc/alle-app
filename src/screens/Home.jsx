@@ -488,7 +488,7 @@ export function Home({
         />
       </Sheet>
 
-      <Sheet open={sheet?.type === 'ai'} onClose={close} title="Create with AI">
+      <Sheet open={sheet?.type === 'ai'} onClose={close} title="Create with AI" wide>
         <AiBuilder
           onCreate={async (deck) => {
             await addDeck({ ...deck, ...pickDeckLook(decks) });

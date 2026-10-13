@@ -14,7 +14,7 @@ import { DESKTOP_QUERY, useMediaQuery } from '../lib/useMediaQuery.js';
  * The header never scrolls. The sheet runs to the bottom edge of the screen,
  * so the area around the keyboard is always the sheet's own white.
  */
-export function Sheet({ open, onClose, title, children, variant = 'page' }) {
+export function Sheet({ open, onClose, title, children, variant = 'page', wide = false }) {
   const reduce = useReducedMotion();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   useKeyboardInset(open && !desktop);
@@ -56,7 +56,7 @@ export function Sheet({ open, onClose, title, children, variant = 'page' }) {
           />
           <div key="frame" className={desktop ? 'popup-frame' : undefined} style={desktop ? undefined : { display: 'contents' }}>
             <motion.section
-              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''}`}
+              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''} ${wide ? 'sheet--wide' : ''}`}
               role="dialog"
               aria-modal="true"
               aria-label={title}
