@@ -948,3 +948,8 @@
 }
 .lightbox__close .icon { width: 22px; height: 22px; }
 .study-card__prompt.has-picture, .study-card__picture-wrap { align-self: stretch; width: 100%; }
+
+/* Dark mode: the selected tab uses the same colours as the floating + button, so it's clear which one is on */
+:root[data-theme="dark"] .tabbar__pill { background: var(--cta-bg); }
+:root[data-theme="dark"] .tabbar__tab.is-active { color: var(--cta-fg); }
+.tabbar__tab { transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
