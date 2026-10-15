@@ -81,9 +81,35 @@ export async function readCapped(res, max = MAX_HTML_BYTES) {
   return new TextDecoder().decode(Buffer.concat(chunks).subarray(0, max));
 }
 
+const SB_URL = process.env.VITE_SUPABASE_URL;
+const SB_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+
+/** Signed-in people only, and a limit per person (supabase/015_rate_limits.sql). */
+async function allowed(req, fetchImpl) {
+  const token = String(req.headers?.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token || !SB_URL || !SB_KEY) return { ok: false, status: 401 };
+  try {
+    const r = await fetchImpl(`${SB_URL}/rest/v1/rpc/hit_limit`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bucket: 'sheet' }),
+    });
+    if (r.status === 401 || r.status === 403) return { ok: false, status: 401 };
+    if (r.ok) {
+      const out = await r.json();
+      if (out?.reason === 'signed_out') return { ok: false, status: 401 };
+      if (out && out.ok === false) return { ok: false, status: 429, retry: out.retry_after || 60 };
+      return { ok: true };
+    }
+    // 015 not run yet: at least make sure the sign-in is real
+    const u = await fetchImpl(`${SB_URL}/auth/v1/user`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
+    return u.ok ? { ok: true } : { ok: false, status: 401 };
+  } catch { return { ok: false, status: 503 }; }
+}
+
 export default async function handler(req, res, fetchImpl = fetch) {
   const url = String(req.query.url || '');
-  const debug = req.query.debug === '1';
+  const debug = req.query.debug === '1' && process.env.VERCEL_ENV !== 'production'; // details only on test builds
   const trace = [];
   let parsed;
   try { parsed = new URL(url); } catch { return res.status(400).json({ name: null }); }
@@ -91,7 +117,12 @@ export default async function handler(req, res, fetchImpl = fetch) {
     return res.status(400).json({ name: null });
   }
 
-  res.setHeader('Cache-Control', 's-maxage=300');
+  const gate = await allowed(req, fetchImpl);
+  if (!gate.ok) {
+    if (gate.retry) res.setHeader('Retry-After', String(gate.retry));
+    return res.status(gate.status).json({ name: null, error: gate.status === 429 ? 'rate' : gate.status === 401 ? 'signed_out' : 'unavailable' });
+  }
+  res.setHeader('Cache-Control', 'private, no-store');
   const signal = AbortSignal.timeout(TIME_LIMIT_MS);
   try {
     // 1. The CSV download's file name: "Spreadsheet - Tab.csv"

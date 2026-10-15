@@ -2,7 +2,9 @@
 // (api/sheet-name.js). Local stand-ins only: no real network, no cloud metadata.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import handler, { allowedUrl, safeFetch, readCapped } from '../../api/sheet-name.js';
+process.env.VITE_SUPABASE_URL = 'https://db.test';
+process.env.VITE_SUPABASE_ANON_KEY = 'anon-test';
+const { default: handler, allowedUrl, safeFetch, readCapped } = await import('../../api/sheet-name.js');
 
 const SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-abc/pub?output=csv';
 
@@ -12,6 +14,7 @@ function world(routes) {
   const fetchImpl = async (url, init = {}) => {
     tried.push(url);
     if (init.signal?.aborted) throw new DOMException('timeout', 'TimeoutError');
+    if (url === 'https://db.test/rest/v1/rpc/hit_limit') return new Response(JSON.stringify({ ok: true, left: 29 }));
     const r = routes(url, init);
     return typeof r === 'function' ? r(init) : r;
   };
@@ -22,7 +25,7 @@ const csvWithName = () => new Response('a,b\n1,2', { headers: { 'content-disposi
 function call(url, fetchImpl) {
   return new Promise((resolve) => {
     const res = { code: 200, setHeader() {}, status(c) { this.code = c; return this; }, json(b) { resolve({ code: this.code, body: b }); } };
-    handler({ query: { url } }, res, fetchImpl);
+    handler({ query: { url }, headers: { authorization: 'Bearer test-session' } }, res, fetchImpl);
   });
 }
 
@@ -62,7 +65,8 @@ test('redirects to private, loopback, IPv6, metadata or other hosts are not foll
     const { tried, fetchImpl } = world((url) => (url.startsWith('https://docs.google.com/') ? redirect(to) : new Response('reached')));
     const out = await call(SHEET, fetchImpl);
     assert.equal(out.body.name, null, to);
-    assert.ok(tried.every((u) => allowedUrl(u)), `followed to ${tried.find((u) => !allowedUrl(u))}`);
+    const outside = tried.filter((u) => !u.startsWith('https://db.test/'));
+    assert.ok(outside.every((u) => allowedUrl(u)), `followed to ${outside.find((u) => !allowedUrl(u))}`);
   }
 });
 

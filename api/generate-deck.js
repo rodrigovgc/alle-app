@@ -35,6 +35,24 @@ async function signedInUser(req) {
 
 const monthStart = () => { const d = new Date(); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString(); };
 
+/**
+ * Short-term limit, shared by every copy of this function (supabase/015_rate_limits.sql).
+ * Returns { ok, retry_after }. If 015 hasn't been run yet, it lets the request through.
+ */
+export async function hitLimit(bucket, token, fetchImpl = fetch) {
+  try {
+    const res = await fetchImpl(`${SB_URL}/rest/v1/rpc/hit_limit`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bucket }),
+    });
+    if (res.status === 401) return { ok: false, reason: 'signed_out' };
+    if (!res.ok) return { ok: true, unchecked: true };
+    const out = await res.json();
+    return out && typeof out === 'object' ? out : { ok: true, unchecked: true };
+  } catch { return { ok: true, unchecked: true }; }
+}
+
 /** AI decks made this month; null if the table isn't there yet (012_ai_decks.sql not run). */
 async function usedThisMonth(token) {
   const res = await sb(`/rest/v1/ai_generations?select=id&created_at=gte.${encodeURIComponent(monthStart())}`, token, {
@@ -138,6 +156,12 @@ export default async function handler(req, res) {
 
   if (!enabled) return res.status(503).json({ error: 'not_available' });
   if (!unlimited && left <= 0) return res.status(429).json({ error: 'limit', limit: LIMIT, left: 0 });
+  // A few AI decks a minute at most, even for unlimited accounts (each one costs money)
+  const burst = await hitLimit('ai', who.token);
+  if (!burst.ok) {
+    res.setHeader('Retry-After', String(burst.retry_after || 60));
+    return res.status(429).json({ error: 'rate', retry_after: burst.retry_after || 60 });
+  }
 
   // Only the builder's known choices are used (extra fields are dropped); bad JSON is a 400, not a crash
   let body;

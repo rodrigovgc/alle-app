@@ -25,6 +25,7 @@ function fakeFetch(calls) {
     if (u === 'https://db.test/auth/v1/user') {
       return new Response(JSON.stringify({ id: 'mallory', email: 'mallory@example.com' }), { status: 200 });
     }
+    if (u === 'https://db.test/rest/v1/rpc/hit_limit') return new Response(JSON.stringify({ ok: true, left: 2 }), { status: 200 });
     if (u.startsWith('https://db.test/rest/v1/ai_generations')) {
       return new Response(init.method === 'HEAD' ? null : '', { status: 201, headers: { 'content-range': '0-0/0' } });
     }
@@ -73,7 +74,7 @@ test('AI prompt injection: the server never acts on what the model asks for', as
     const hosts = new Set(calls.map((c) => new URL(c.url).host));
     assert.deepEqual([...hosts].sort(), ['api.anthropic.com', 'db.test']);
     for (const c of calls.filter((x) => x.url.startsWith('https://db.test'))) {
-      assert.match(c.url, /\/auth\/v1\/user$|\/rest\/v1\/ai_generations/);
+      assert.match(c.url, /\/auth\/v1\/user$|\/rest\/v1\/ai_generations|\/rest\/v1\/rpc\/hit_limit$/);
       assert.equal(c.headers.Authorization, `Bearer ${MALLORY_TOKEN}`); // never the anon key or a service key
       assert.doesNotMatch(c.url + (c.body || ''), /alice/i);
     }
@@ -97,8 +98,10 @@ test('AI prompt injection: the server never acts on what the model asks for', as
     }
 
     // 4. It was counted as Mallory's own AI deck, nothing else was written
-    const writes = calls.filter((c) => c.method === 'POST' && c.url.startsWith('https://db.test'));
+    const writes = calls.filter((c) => c.method === 'POST' && c.url.startsWith('https://db.test/rest/v1/ai_generations'));
     assert.equal(writes.length, 1);
+    const limitCalls = calls.filter((c) => c.url.endsWith('/rpc/hit_limit'));
+    assert.deepEqual(limitCalls.map((c) => JSON.parse(c.body)), [{ bucket: 'ai' }]); // only the fixed bucket name, nothing from the model
     assert.deepEqual(Object.keys(JSON.parse(writes[0].body)).sort(), ['cards', 'model']);
   } finally {
     globalThis.fetch = realFetch;

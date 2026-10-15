@@ -134,7 +134,11 @@ export async function fetchSheetName(input) {
   const url = toCsvUrl(input || '');
   if (!/^https:\/\/docs\.google\.com\/spreadsheets\//.test(url)) return null;
   try {
-    const res = await fetch(`/api/sheet-name?url=${encodeURIComponent(url)}`);
+    const { supabase } = await import('./supabase.js'); // loaded here so the parsing code stays testable on its own
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) return null;
+    const res = await fetch(`/api/sheet-name?url=${encodeURIComponent(url)}`, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) return null;
     const { name } = await res.json();
     return typeof name === 'string' && name.trim() ? name.trim() : null;

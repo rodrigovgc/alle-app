@@ -326,6 +326,7 @@ const AI_ERRORS = {
   not_available: 'Alle’s AI isn’t switched on yet. Use your own AI for now.',
   signed_out: 'Sign in again to use Alle’s AI.',
   offline: 'You seem to be offline. Check your connection and try again.',
+  rate: 'That was quick! Wait a minute, then try again.',
 };
 
 function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
