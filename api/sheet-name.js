@@ -38,22 +38,67 @@ const HEADERS = {
   'Accept-Language': 'en',
 };
 
-export default async function handler(req, res) {
+// Where this function may connect. Only Google's own sheet servers: a person's link
+// can't point it anywhere else, and neither can a redirect.
+const ALLOWED_HOST = (h) => h === 'docs.google.com' || /^[a-z0-9-]+\.googleusercontent\.com$/.test(h);
+export function allowedUrl(u) {
+  try {
+    const p = new URL(u);
+    return p.protocol === 'https:' && p.port === '' && !p.username && !p.password && ALLOWED_HOST(p.hostname);
+  } catch { return false; }
+}
+const TIME_LIMIT_MS = 6000;      // the whole lookup, all requests and redirects together
+const MAX_REDIRECTS = 4;
+const MAX_HTML_BYTES = 512 * 1024; // the <title> is near the top; never read more than this
+
+/** fetch() that only goes to allowed hosts, checks every redirect itself, and stops on time. */
+export async function safeFetch(url, signal, fetchImpl = fetch) {
+  let current = url;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (!allowedUrl(current)) throw new Error('blocked destination');
+    const res = await fetchImpl(current, { redirect: 'manual', headers: HEADERS, signal });
+    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
+      res.body?.cancel?.().catch(() => {});
+      current = new URL(res.headers.get('location'), current).toString();
+      continue;
+    }
+    return { res, finalUrl: current };
+  }
+  throw new Error('too many redirects');
+}
+
+/** The start of a response body as text, never more than `max` bytes. */
+export async function readCapped(res, max = MAX_HTML_BYTES) {
+  if (!res.body?.getReader) return (await res.text()).slice(0, max);
+  const reader = res.body.getReader();
+  const chunks = []; let size = 0;
+  while (size < max) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); size += value.byteLength;
+  }
+  reader.cancel().catch(() => {});
+  return new TextDecoder().decode(Buffer.concat(chunks).subarray(0, max));
+}
+
+export default async function handler(req, res, fetchImpl = fetch) {
   const url = String(req.query.url || '');
   const debug = req.query.debug === '1';
   const trace = [];
   let parsed;
   try { parsed = new URL(url); } catch { return res.status(400).json({ name: null }); }
-  if (parsed.protocol !== 'https:' || parsed.hostname !== 'docs.google.com' || !parsed.pathname.startsWith('/spreadsheets/')) {
+  if (!allowedUrl(url) || parsed.hostname !== 'docs.google.com' || !parsed.pathname.startsWith('/spreadsheets/')) {
     return res.status(400).json({ name: null });
   }
 
   res.setHeader('Cache-Control', 's-maxage=300');
+  const signal = AbortSignal.timeout(TIME_LIMIT_MS);
   try {
     // 1. The CSV download's file name: "Spreadsheet - Tab.csv"
-    const csv = await fetch(url, { redirect: 'follow', headers: HEADERS });
+    const { res: csv, finalUrl: csvUrl } = await safeFetch(url, signal, fetchImpl);
+    csv.body?.cancel?.().catch(() => {}); // only the headers are needed, never the sheet itself
     const disposition = csv.headers.get('content-disposition');
-    trace.push({ step: 'csv', status: csv.status, finalUrl: csv.url, contentType: csv.headers.get('content-type'), disposition });
+    trace.push({ step: 'csv', status: csv.status, finalUrl: csvUrl, contentType: csv.headers.get('content-type'), disposition });
     const fromHeader = nameFromDisposition(disposition);
     if (fromHeader) return res.status(200).json(debug ? { name: fromHeader, trace } : { name: fromHeader });
 
@@ -64,10 +109,10 @@ export default async function handler(req, res) {
       : id ? `https://docs.google.com/spreadsheets/d/${id[1]}/htmlview` // shared link
         : url;
     if (htmlUrl !== url) {
-      const page = await fetch(htmlUrl, { redirect: 'follow', headers: HEADERS });
-      const html = page.ok ? await page.text() : '';
+      const { res: page, finalUrl: pageUrl } = await safeFetch(htmlUrl, signal, fetchImpl);
+      const html = page.ok ? await readCapped(page) : '';
       const titleTag = (html.match(/<title>([^<]*)<\/title>/i) || [])[1] || null;
-      trace.push({ step: 'html', url: htmlUrl, status: page.status, finalUrl: page.url, titleTag });
+      trace.push({ step: 'html', url: htmlUrl, status: page.status, finalUrl: pageUrl, titleTag });
       const fromTitle = nameFromHtml(html);
       if (fromTitle) return res.status(200).json(debug ? { name: fromTitle, trace } : { name: fromTitle });
     }
