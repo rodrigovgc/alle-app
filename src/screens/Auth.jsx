@@ -212,21 +212,21 @@ export function Auth({ notice: startNotice = '' }) {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
-        <Field label="Password" hint={isSignUp ? 'At least 6 characters.' : undefined}>
+        <Field label="Password" hint={isSignUp ? 'At least 8 characters.' : undefined}>
           <input
             className="input"
             type="password"
             autoComplete={isSignUp ? 'new-password' : 'current-password'}
             enterKeyHint="go"
             required
-            minLength={6}
+            minLength={isSignUp ? 8 : 6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
         {error && <p className="form-error" role="alert">{error}</p>}
         {notice && <p className="form-notice" role="status">{notice}</p>}
-        <Button type="submit" disabled={busy || !email || password.length < 6 || (isSignUp && !firstName.trim())}>
+        <Button type="submit" disabled={busy || !email || password.length < (isSignUp ? 8 : 6) || (isSignUp && !firstName.trim())}>
           {busy ? 'One moment…' : isSignUp ? 'Create account' : 'Sign in'}
         </Button>
         {!isSignUp && (
