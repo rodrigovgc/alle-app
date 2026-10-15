@@ -521,7 +521,7 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
           {parsed.deck.cards.slice(0, 4).map((c, i) => (
             <div key={i} className="preview-list__row">
               {imageSrc(c.front)
-                ? <img className={`preview-list__img ${needsFrame(c.front) ? 'is-framed' : ''}`} src={imageSrc(c.front)} alt={c.front} />
+                ? <img className={`preview-list__img ${needsFrame(c.front) ? 'is-framed' : ''}`} src={imageSrc(c.front)} alt={c.front} referrerPolicy="no-referrer" />
                 : <span>{c.front}</span>}
               <span>{c.back.replace(/\|/g, ' / ')}</span>
             </div>

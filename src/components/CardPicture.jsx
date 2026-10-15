@@ -46,6 +46,7 @@ export function CardPicture({ cell, sources, framed, onBroken }) {
           src={list[i]}
           alt="Picture to identify"
           decoding="async"
+          referrerPolicy="no-referrer"
           draggable={false}
           onError={onError}
         />
@@ -67,6 +68,7 @@ export function CardPicture({ cell, sources, framed, onBroken }) {
               <motion.img
                 className={`lightbox__img ${framed ? 'is-framed' : ''}`}
                 src={list[i]}
+                referrerPolicy="no-referrer"
                 alt="Picture to identify, enlarged"
                 draggable={false}
                 initial={{ scale: 0.92 }}

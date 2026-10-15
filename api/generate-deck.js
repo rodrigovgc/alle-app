@@ -110,7 +110,8 @@ async function askClaude(spec) {
   });
   if (!res.ok) throw new Error(`AI request failed (${res.status})`);
   const data = await res.json();
-  const call = (data.content || []).find((b) => b.type === 'tool_use');
+  // Only Alle's one tool counts; anything else the model sends (text, other tool names) is ignored
+  const call = (data.content || []).find((b) => b.type === 'tool_use' && b.name === TOOL.name);
   return call?.input?.cards || [];
 }
 
