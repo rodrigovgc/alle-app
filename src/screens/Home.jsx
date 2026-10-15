@@ -19,6 +19,7 @@ import { READY_MADE } from '../lib/sampleDeck.js';
 import { HomeOverview, TabBar, Sidebar, useSamplesHidden } from '../components/HomeHub.jsx';
 import { answerMode } from '../lib/srs.js';
 import { fetchSheetName, fetchDeckFromUrl } from '../lib/csv.js';
+import { rawError } from '../lib/api.js';
 import { LANGUAGES, inferLang } from '../lib/speech.js';
 import { DECK_COLORS, DECK_COLOR_LABELS, DECK_SHAPES, NO_COLOR, SPRING, deckColorVars, deckShape, pickDeckLook, tokenNumber } from '../styles/tokens.js';
 
@@ -750,9 +751,9 @@ function CoverForm({ deck, onSave, onDone }) {
       setStatus('saved');
     } catch (err) {
       setStatus('');
-      setError(/answer_mode/.test(err.message)
+      setError(/answer_mode/.test(rawError(err))
         ? 'Answer settings need one database update. Run supabase/003_answer_mode.sql in Supabase.'
-        : /shape/.test(err.message)
+        : /shape/.test(rawError(err))
           ? 'Shapes need one database update. Run supabase/002_shapes.sql in Supabase.'
           : 'Couldn’t save that change. Check your connection and try again.');
     }

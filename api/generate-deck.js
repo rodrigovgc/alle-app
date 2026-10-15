@@ -10,6 +10,7 @@
 // the screens can be tried; the live app says AI isn't available yet.
 
 import { buildAppPrompt, LEVELS, SIZES } from '../src/lib/prompt.js';
+import { withErrors, logEvent } from './_errors.js';
 
 const SB_URL = process.env.VITE_SUPABASE_URL;
 const SB_KEY = process.env.VITE_SUPABASE_ANON_KEY;
@@ -142,7 +143,7 @@ function previewCards(spec) {
   }));
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const who = await signedInUser(req);
   if (!who) return res.status(401).json({ error: 'signed_out' });
@@ -180,7 +181,10 @@ export default async function handler(req, res) {
       }).catch(() => {});
     }
     return res.status(200).json({ cards, left: unlimited ? 999 : Math.max(0, left - 1), preview });
-  } catch {
-    return res.status(502).json({ error: 'ai_failed' });
+  } catch (err) {
+    logEvent('warn', 'generate-deck', req.requestId, { error: 'ai_failed', message: err?.message || '' });
+    return res.status(502).json({ error: 'ai_failed', requestId: req.requestId });
   }
 }
+
+export default withErrors('generate-deck', handler);

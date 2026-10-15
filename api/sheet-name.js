@@ -1,3 +1,4 @@
+import { withErrors } from './_errors.js';
 // Vercel function: returns the name of a published Google Sheet.
 //
 // Browsers can't read the name themselves: Google sends it in a download header
@@ -107,7 +108,7 @@ async function allowed(req, fetchImpl) {
   } catch { return { ok: false, status: 503 }; }
 }
 
-export default async function handler(req, res, fetchImpl = fetch) {
+async function handler(req, res, fetchImpl = fetch) {
   const url = String(req.query.url || '');
   const debug = req.query.debug === '1' && process.env.VERCEL_ENV !== 'production'; // details only on test builds
   const trace = [];
@@ -152,3 +153,5 @@ export default async function handler(req, res, fetchImpl = fetch) {
   }
   return res.status(200).json(debug ? { name: null, trace } : { name: null });
 }
+
+export default withErrors('sheet-name', handler);

@@ -1,10 +1,11 @@
 import { SAMPLE_DECKS } from './sampleDeck.js';
 import { supabase } from './supabase.js';
+import { plainDbError } from './dbErrors.js';
 
 const DECK_FIELDS = '*'; // tolerant of optional columns added by later migrations
 
 function check({ data, error }) {
-  if (error) throw error;
+  if (error) throw plainDbError(error);
   return data;
 }
 
@@ -45,9 +46,12 @@ export async function saveOrder(orderedDecks) {
 }
 
 /** "Failed to fetch" and friends: the request never reached the server. */
-export const isNetworkError = (e) => /failed to fetch|networkerror|load failed|network request failed/i.test(e?.message || '');
+export const isNetworkError = (e) => /failed to fetch|networkerror|load failed|network request failed/i.test(e?.raw || e?.message || '');
 
 /** A message people can act on, instead of the browser's raw wording. */
+/** The database's own wording, for checks like "is update 004 missing?". Never shown to people. */
+export const rawError = (e) => String(e?.raw || e?.message || '');
+
 export function friendlyError(e) {
   return isNetworkError(e)
     ? 'Couldn’t reach Alle. Check your connection and try again.'
@@ -64,7 +68,7 @@ async function retryOnce(fn) {
 }
 
 /** The database refused because the request wasn't signed in (sign-in lapsed). */
-export const isAuthLapse = (e) => /row-level security|jwt expired|invalid jwt|not authenticated|auth session missing/i.test(e?.message || '');
+export const isAuthLapse = (e) => /row-level security|jwt expired|invalid jwt|not authenticated|auth session missing/i.test(e?.raw || e?.message || '');
 
 export class SignedOutError extends Error {}
 

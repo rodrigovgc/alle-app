@@ -500,7 +500,7 @@ function Library({ user, onUser }) {
         onMoveDeck={async (deckId, groupId) => {
           setDecks((all) => all.map((d) => (d.id === deckId ? { ...d, group_id: groupId } : d)));
           try { await api.updateDeck(deckId, { group_id: groupId }); announceSaved(); } catch (e) {
-            setError(/group_id/.test(e.message) ? 'Groups need one database update. Run supabase/010_groups.sql in Supabase.' : api.friendlyError(e));
+            setError(/group_id/.test(api.rawError(e)) ? 'Groups need one database update. Run supabase/010_groups.sql in Supabase.' : api.friendlyError(e));
           }
         }}
         onReorder={async (ordered) => {
@@ -509,7 +509,7 @@ function Library({ user, onUser }) {
             setDecks(await api.saveOrder(ordered));
             announceSaved();
           } catch (e) {
-            setError(/position/.test(e.message)
+            setError(/position/.test(api.rawError(e))
               ? 'Saving the order needs one database update. Run supabase/004_position.sql in Supabase.'
               : e.message);
           }
