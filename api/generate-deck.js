@@ -47,7 +47,8 @@ async function usedThisMonth(token) {
 
 // Keep the builder's choices short and sane before they go into the request
 const clip = (s, n) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
-function cleanSpec(s = {}) {
+export function cleanSpec(input) {
+  const s = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
   return {
     subject: clip(s.subject, 20), known: clip(s.known, 40), learning: clip(s.learning, 40),
     topic: clip(s.topic, 200), focus: clip(s.focus, 200),
@@ -60,7 +61,7 @@ function cleanSpec(s = {}) {
 }
 
 /** Cards from the AI, checked: two short sides, no empty or repeated fronts, the size asked for. */
-function cleanCards(list, count) {
+export function cleanCards(list, count) {
   const seen = new Set();
   const out = [];
   for (const c of Array.isArray(list) ? list : []) {
@@ -137,7 +138,10 @@ export default async function handler(req, res) {
   if (!enabled) return res.status(503).json({ error: 'not_available' });
   if (!unlimited && left <= 0) return res.status(429).json({ error: 'limit', limit: LIMIT, left: 0 });
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  // Only the builder's known choices are used (extra fields are dropped); bad JSON is a 400, not a crash
+  let body;
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {}); } catch { return res.status(400).json({ error: 'bad_request' }); }
+  if (!body || typeof body !== 'object' || (body.spec != null && typeof body.spec !== 'object')) return res.status(400).json({ error: 'bad_request' });
   const spec = cleanSpec(body.spec);
   try {
     const preview = !AI_KEY;

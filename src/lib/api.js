@@ -72,7 +72,18 @@ export class SignedOutError extends Error {}
  * Save a new deck. If the sign-in quietly lapsed (common after the app sat in
  * the background), renew it and try again before giving up.
  */
-export async function createDeck(deck) {
+/** Keep names within the database's limits (supabase/014_input_rules.sql), so a very long sheet name can't block saving. */
+const cut = (v, n) => (typeof v === 'string' ? v.slice(0, n) : v);
+export function fitDeck(d) {
+  const out = { ...d };
+  if ('title' in out) out.title = cut(out.title, 300);
+  if ('front_label' in out) out.front_label = cut(out.front_label, 100);
+  if ('back_label' in out) out.back_label = cut(out.back_label, 100);
+  return out;
+}
+
+export async function createDeck(input) {
+  const deck = fitDeck(input);
   const insert = async () => {
     const res = await supabase.from('decks').insert(deck).select(DECK_FIELDS).single();
     // Before supabase/009_insights.sql runs there's no "source" column: save without it.
@@ -93,7 +104,7 @@ export async function createDeck(deck) {
 }
 
 export async function updateDeck(id, patch) {
-  return check(await supabase.from('decks').update(patch).eq('id', id).select(DECK_FIELDS).single());
+  return check(await supabase.from('decks').update(fitDeck(patch)).eq('id', id).select(DECK_FIELDS).single());
 }
 
 export async function removeDeck(id) {
@@ -184,7 +195,7 @@ export async function listGroups() {
   return data || [];
 }
 export async function createGroup(group) {
-  const { data, error } = await supabase.from('deck_groups').insert(group).select('*').single();
+  const { data, error } = await supabase.from('deck_groups').insert({ ...group, title: String(group.title ?? '').slice(0, 200) }).select('*').single();
   if (error) {
     if (missingGroups(error)) throw new Error('Groups need one database update. Run supabase/010_groups.sql in Supabase.');
     throw error;
@@ -192,7 +203,7 @@ export async function createGroup(group) {
   return data;
 }
 export async function updateGroup(id, patch) {
-  check(await supabase.from('deck_groups').update(patch).eq('id', id).select('id').single());
+  check(await supabase.from('deck_groups').update('title' in patch ? { ...patch, title: String(patch.title ?? '').slice(0, 200) } : patch).eq('id', id).select('id').single());
 }
 export async function removeGroup(id) {
   check(await supabase.from('deck_groups').delete().eq('id', id));
