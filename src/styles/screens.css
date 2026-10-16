@@ -721,6 +721,10 @@
 .create-card__title { font-size: 15px; font-weight: var(--font-weight-semibold); line-height: 1.25; letter-spacing: -0.01em; }
 .create-card__hint { font-size: var(--font-size-caption); line-height: 1.4; color: var(--text-secondary); }
 @media (hover: hover) { .create-card:hover { box-shadow: var(--shadow-raised); } }
+/* Each way gets a light wash of its own colour, so they read apart from the white deck cards */
+.create-card[style] { background: color-mix(in srgb, var(--tile) 30%, var(--card-bg)); box-shadow: none; }
+@media (hover: hover) { .create-card[style]:hover { box-shadow: none; background: color-mix(in srgb, var(--tile) 42%, var(--card-bg)); } }
+
 /* Shorter words on phones, where the tiles are half the screen wide */
 .create-card .on-wide { display: none; }
 
