@@ -71,8 +71,8 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
           <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
             <span className="create-card__text">
-              <span className="create-card__title">Import a Google Sheet</span>
-              <span className="create-card__hint">Already have your study content? Turn your Sheet into flashcards.</span>
+              <span className="create-card__title">Import a Sheet</span>
+              <span className="create-card__hint">Turn your notes into flashcards.</span>
             </span>
           </button>
           <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
