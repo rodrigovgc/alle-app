@@ -12,6 +12,7 @@ import { Consent } from './components/Consent.jsx';
 import { initHotjar } from './lib/hotjar.js';
 import { DesignSystem } from './screens/DesignSystem.jsx';
 import { Dashboard } from './screens/Dashboard.jsx';
+import { VoiceTest } from './screens/VoiceTest.jsx';
 import './styles/design-system.css';
 import './styles/onboarding.css';
 import './styles/scenes.css';
@@ -24,6 +25,7 @@ function route(path) {
   const p = path.replace(/\/$/, '');
   if (p === '/design') return <DesignSystem />;
   if (p === '/dashboard') return <Dashboard />;
+  if (p === '/voice-test') return <VoiceTest />;
   // Hotjar only on the app itself (not the owner's dashboard or the design system), and only with consent
   initHotjar();
   return <><App /><Consent /></>;
