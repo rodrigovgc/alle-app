@@ -65,23 +65,23 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Create with AI</span>
-              <span className="create-card__hint">Tell Alle what you want to learn.</span>
+              <span className="create-card__hint">Tell Alle what you want to learn</span>
             </span>
           </button>
-          <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
-            <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
-            <span className="create-card__text">
-              <span className="create-card__title">Import a Sheet</span>
-              <span className="create-card__hint">Turn your notes into flashcards.</span>
-            </span>
-          </button>
-          <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
+          <a className="create-card" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Start with a template</span>
-              <span className="create-card__hint">Copy an example Sheet and add your content.</span>
+              <span className="create-card__hint">Copy an example Sheet and add your content</span>
             </span>
           </a>
+          <button type="button" className="create-card create-card--wide" onClick={() => { homeAction('create_sheet'); onImport(); }}>
+            <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
+            <span className="create-card__text">
+              <span className="create-card__title">Import a Sheet</span>
+              <span className="create-card__hint">Turn your notes into flashcards</span>
+            </span>
+          </button>
         </div>
       </section>
 
