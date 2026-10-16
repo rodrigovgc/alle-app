@@ -721,14 +721,10 @@
 .create-card__title { font-size: 15px; font-weight: var(--font-weight-semibold); line-height: 1.25; letter-spacing: -0.01em; }
 .create-card__hint { font-size: var(--font-size-caption); line-height: 1.4; color: var(--text-secondary); }
 @media (hover: hover) { .create-card:hover { box-shadow: var(--shadow-raised); } }
-/* Each way gets its own colour fading to the card colour, with the usual shadow, so they read
-   apart from the white deck cards and still lift off the page */
-.create-card[style] {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--tile) 55%, var(--card-bg)) 0%, var(--card-bg) 72%);
-}
-@media (hover: hover) {
-  .create-card[style]:hover { background: linear-gradient(160deg, color-mix(in srgb, var(--tile) 75%, var(--card-bg)) 0%, var(--card-bg) 80%); }
-}
+/* Each way gets a very light tint of its icon colour, with the usual shadow, so they read apart
+   from the white deck cards and still lift off the page */
+.create-card[style] { background: color-mix(in srgb, var(--tile) 16%, var(--card-bg)); }
+@media (hover: hover) { .create-card[style]:hover { background: color-mix(in srgb, var(--tile) 26%, var(--card-bg)); } }
 
 /* Shorter words on phones, where the tiles are half the screen wide */
 .create-card .on-wide { display: none; }
