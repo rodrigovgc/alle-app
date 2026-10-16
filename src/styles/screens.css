@@ -723,8 +723,11 @@
 @media (hover: hover) { .create-card:hover { box-shadow: var(--shadow-raised); } }
 /* Each way gets a very light tint of its icon colour, with the usual shadow, so they read apart
    from the white deck cards and still lift off the page */
-.create-card[style] { background: color-mix(in srgb, var(--tile) 16%, var(--card-bg)); }
-@media (hover: hover) { .create-card[style]:hover { background: color-mix(in srgb, var(--tile) 26%, var(--card-bg)); } }
+.create-card[style] {
+  background: color-mix(in srgb, var(--tile) 9%, var(--card-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile) 55%, var(--card-bg)), var(--shadow-soft-card);
+}
+@media (hover: hover) { .create-card[style]:hover { background: color-mix(in srgb, var(--tile) 16%, var(--card-bg)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile) 75%, var(--card-bg)), var(--shadow-raised); } }
 
 /* Shorter words on phones, where the tiles are half the screen wide */
 .create-card .on-wide { display: none; }
@@ -962,3 +965,11 @@
 :root[data-theme="dark"] .tabbar__pill { background: var(--cta-bg); }
 :root[data-theme="dark"] .tabbar__tab.is-active { color: var(--cta-fg); }
 .tabbar__tab { transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
+
+/* Sample decks: the same coloured shadow as the decks on the Decks page */
+.sample-tile {
+  --deck-shadow-rest: color-mix(in srgb, var(--deck-deep) 55%, transparent);
+  box-shadow: 0 26px 23.4px -10px color-mix(in srgb, var(--deck-shadow-rest) 36%, transparent), 0 10.86px 9.78px -4.18px color-mix(in srgb, var(--deck-shadow-rest) 26%, transparent), 0 5.81px 5.23px -2.23px color-mix(in srgb, var(--deck-shadow-rest) 21%, transparent), 0 3.26px 2.93px -1.25px color-mix(in srgb, var(--deck-shadow-rest) 18%, transparent), 0 1.73px 1.56px -0.67px color-mix(in srgb, var(--deck-shadow-rest) 14%, transparent);
+}
+:root[data-theme="dark"] .sample-tile { --deck-shadow-rest: rgb(0 0 0 / 0.45); }
+
