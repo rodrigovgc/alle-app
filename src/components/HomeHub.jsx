@@ -65,7 +65,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Create with AI</span>
-              <span className="create-card__hint">Tell Alle what you want to learn<span className="create-card__more"> and create a deck with AI</span>.</span>
+              <span className="create-card__hint">Tell Alle what you want to learn.</span>
             </span>
           </button>
           <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
@@ -79,7 +79,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Start with a template</span>
-              <span className="create-card__hint">Need a place to start? Copy an example Sheet and add your content.</span>
+              <span className="create-card__hint">Copy an example Sheet and add your content.</span>
             </span>
           </a>
         </div>
