@@ -65,7 +65,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Create with AI</span>
-              <span className="create-card__hint">Tell Alle what you want to learn and create a deck with AI.</span>
+              <span className="create-card__hint">Tell Alle what you want to learn<span className="create-card__more"> and create a deck with AI</span>.</span>
             </span>
           </button>
           <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
