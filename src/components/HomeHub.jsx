@@ -75,7 +75,7 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
               <span className="create-card__hint">Already have your study content? Turn your Sheet into flashcards.</span>
             </span>
           </button>
-          <a className="create-card" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
+          <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
               <span className="create-card__title">Start with a template</span>
