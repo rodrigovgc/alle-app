@@ -725,9 +725,9 @@
    from the white deck cards and still lift off the page */
 .create-card[style] {
   background: color-mix(in srgb, var(--tile) 9%, var(--card-bg));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile) 55%, var(--card-bg)), var(--shadow-soft-card);
+  box-shadow: inset 0 0 0 1px var(--color-surface-deep), var(--shadow-soft-card);
 }
-@media (hover: hover) { .create-card[style]:hover { background: color-mix(in srgb, var(--tile) 16%, var(--card-bg)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile) 75%, var(--card-bg)), var(--shadow-raised); } }
+@media (hover: hover) { .create-card[style]:hover { background: color-mix(in srgb, var(--tile) 16%, var(--card-bg)); box-shadow: inset 0 0 0 1px var(--border-subtle), var(--shadow-raised); } }
 
 /* Shorter words on phones, where the tiles are half the screen wide */
 .create-card .on-wide { display: none; }
