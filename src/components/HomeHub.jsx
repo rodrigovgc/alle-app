@@ -71,8 +71,8 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
           <a className="create-card" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
-              <span className="create-card__title">Start with a template</span>
-              <span className="create-card__hint">Copy an example Sheet and add your content</span>
+              <span className="create-card__title"><span className="on-phone">Use a template</span><span className="on-wide">Start with a template</span></span>
+              <span className="create-card__hint">Copy an example Sheet<span className="on-wide"> and add your content</span></span>
             </span>
           </a>
           <button type="button" className="create-card create-card--wide" onClick={() => { homeAction('create_sheet'); onImport(); }}>
