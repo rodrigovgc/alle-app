@@ -198,3 +198,17 @@ test('audio: the best voice for the language, never a novelty or English one', a
   assert.equal(inferLang('Swedish'), 'sv-SE');
   assert.equal(inferLang('Nederlands'), 'nl-NL');
 });
+
+test('audio on iPhone: premium and enhanced voices win, found by their ID', async () => {
+  const { pickVoice } = await import('./speech.js');
+  const V = (name, lang, voiceURI) => ({ name, lang, voiceURI, localService: true });
+  const ios = [
+    V('Alice', 'it-IT', 'com.apple.voice.compact.it-IT.Alice'),
+    V('Eddy (Italian (Italy))', 'it-IT', 'com.apple.eloquence.it-IT.Eddy'),
+    V('Federica', 'it-IT', 'com.apple.voice.premium.it-IT.Federica'),
+    V('Alice', 'it-IT', 'com.apple.voice.enhanced.it-IT.Alice'),
+  ];
+  assert.equal(pickVoice(ios, 'it-IT').voiceURI, 'com.apple.voice.premium.it-IT.Federica');
+  assert.equal(pickVoice(ios.filter((v) => !/premium/.test(v.voiceURI)), 'it-IT').voiceURI, 'com.apple.voice.enhanced.it-IT.Alice');
+  assert.equal(pickVoice(ios.slice(0, 2), 'it-IT').voiceURI, 'com.apple.voice.compact.it-IT.Alice'); // never Eddy
+});

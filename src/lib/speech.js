@@ -54,9 +54,12 @@ export function pickVoice(voices, lang) {
     const vl = norm(v.lang);
     if (vl.split('-')[0] !== base) continue;                 // never a voice of another language
     let score = vl === want ? 4 : 0;
-    if (/premium|enhanced|natural|neural|siri/i.test(v.name)) score += 5;
+    const id = `${v.name} ${v.voiceURI || ''}`;               // iOS and macOS say "premium"/"enhanced" in the voice's ID
+    if (/premium/i.test(id)) score += 7;
+    else if (/enhanced|natural|neural|siri/i.test(id)) score += 5;
+    if (/compact/i.test(id)) score -= 1;
     if (/google/i.test(v.name)) score += 3;                   // Chrome's own voices are good
-    if (NOVELTY.test(v.name)) score -= 6;
+    if (NOVELTY.test(v.name) || /eloquence|speech\.synthesis\.voice\./i.test(id)) score -= 6; // Eddy, Flo… and the old novelty voices
     if (v.localService === false) score += 1;
     if (score > bestScore) { best = v; bestScore = score; }
   }
