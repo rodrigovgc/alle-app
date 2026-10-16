@@ -47,6 +47,8 @@ function VoiceSet({ set }) {
       const tts = await loadPiper();
       const had = (await tts.stored()).includes(voice);
       if (!had) setStatus('Downloading the voice…');
+      // The package keeps the first voice it loaded and only swaps the name, so a new voice needs a fresh session
+      if (tts.TtsSession._instance && tts.TtsSession._instance.voiceId !== voice) tts.TtsSession._instance = null;
       const wav = await tts.predict({ text, voiceId: voice }, (p) => {
         if (p.total && /\.onnx$/.test(p.url)) setStatus(`Downloading the voice… ${mb(p.loaded)} of ${mb(p.total)}`);
       });
