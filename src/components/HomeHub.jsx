@@ -64,22 +64,22 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
           <button type="button" className="create-card" onClick={() => { homeAction('create_ai'); onAi(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
             <span className="create-card__text">
-              <span className="create-card__title"><span>Create</span> <span>with AI</span></span>
-              <span className="create-card__hint">Say what you want to learn and get the cards.</span>
+              <span className="create-card__title">Create with AI</span>
+              <span className="create-card__hint">Tell Alle what you want to learn and create a deck with AI.</span>
             </span>
           </button>
           <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
             <span className="create-card__text">
-              <span className="create-card__title"><span>Import</span> <span>a Sheet</span></span>
-              <span className="create-card__hint">Paste the link to a Google Sheet with two columns.</span>
+              <span className="create-card__title">Import a Google Sheet</span>
+              <span className="create-card__hint">Already have your study content? Turn your Sheet into flashcards.</span>
             </span>
           </button>
           <a className="create-card" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
-              <span className="create-card__title"><span>Use a</span> <span>template</span></span>
-              <span className="create-card__hint">Copy our Google Sheet, fill it in, then import it.</span>
+              <span className="create-card__title">Start with a template</span>
+              <span className="create-card__hint">Need a place to start? Copy an example Sheet and add your content.</span>
             </span>
           </a>
         </div>
