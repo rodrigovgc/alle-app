@@ -54,3 +54,24 @@ export async function generateCards(spec) {
   if (!res.ok) throw new AiDeckError(data.error || 'ai_failed');
   return data;
 }
+
+/** "Try this card again": one new card instead of `card`, different from the deck's other fronts. */
+export async function retryCard(spec, card, avoid) {
+  if (isDemo) {
+    await new Promise((r) => setTimeout(r, 900));
+    const n = Math.floor(Math.random() * 900) + 100;
+    return { card: { front: `${spec.front} example ${n}`, back: `${spec.back} example ${n}` }, preview: true };
+  }
+  let res;
+  try {
+    res = await fetch('/api/generate-deck', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+      body: JSON.stringify({ spec, replace: { front: card.front, back: card.back, avoid } }),
+    });
+  } catch { throw new AiDeckError('offline'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.card) throw new AiDeckError(data.error || 'ai_failed');
+  return data;
+}
+

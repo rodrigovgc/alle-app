@@ -108,22 +108,47 @@ export function parseLooseTable(input) {
   const lines = text.split('\n').filter((l) => l.trim());
   if (!lines.length) throw new DeckImportError('Paste the cards your AI made.');
 
+  // Rows that didn't split cleanly into two sides: fixed as well as we can, and shown for a check
+  const check = new Map(); // "front\u0000back" → the line as pasted
+  const flag = (front, back, original) => { check.set(`${front.trim()}\u0000${back.trim()}`, original.trim()); return [front, back]; };
+
   let rows;
   if (lines[0].trim().startsWith('|')) {
     rows = lines
       .filter((l) => !/^\s*\|?\s*:?-{2,}/.test(l))           // skip |---|---|
       .map((l) => {
         const inner = l.trim().replace(/^\||\|$/g, '');
-        // Cells are split on " | "; a bare "|" inside a cell stays an alternative answer.
-        return (inner.includes(' | ') ? inner.split(/\s+\|\s+/) : inner.split('|')).map((c) => c.trim());
+        // Sides are split on " | "; a bare "|" inside a side stays an alternative answer.
+        const cells = (inner.includes(' | ') ? inner.split(/\s+\|\s+/) : inner.split('|')).map((c) => c.trim());
+        // Extra cells: almost always alternatives written with spaces ("olá | oi")
+        return cells.length > 2 ? flag(cells[0], cells.slice(1).join('|'), l) : cells;
       });
-    // A Markdown row has exactly two cells here; anything else, fall back.
-    if (rows.some((r) => r.length !== 2)) rows = null;
   }
   if (!rows && lines[0].includes('\t')) rows = lines.map((l) => l.split('\t'));
-  if (!rows) rows = parseCSV(lines.join('\n'));
+  if (!rows) {
+    rows = parseCSV(lines.join('\n'));
+    // An AI that forgot to quote "Yes, here it is." splits a card into extra pieces. Never drop
+    // them: an even split goes back to two halves; anything else keeps every word on the back.
+    if (rows[0]?.length === 2) {
+      const sameLines = rows.length === lines.length; // no line breaks inside quotes, so row i is line i
+      rows = rows.map((r, i) => {
+        const cells = r.map((c) => (c ?? '').trim());
+        if (i === 0 || cells.length <= 2) return r;
+        const original = sameLines ? lines[i] : cells.join(', ');
+        if (cells.length % 2 === 0) {
+          const half = cells.length / 2;
+          return flag(cells.slice(0, half).join(', '), cells.slice(half).join(', '), original);
+        }
+        return flag(cells[0], cells.slice(1).join(', '), original);
+      });
+    }
+  }
 
-  return rowsToDeck(rows);
+  const deck = rowsToDeck(rows);
+  deck.check = deck.cards
+    .map((c, index) => ({ index, original: check.get(`${c.front}\u0000${c.back}`) }))
+    .filter((x) => x.original);
+  return deck;
 }
 
 /**

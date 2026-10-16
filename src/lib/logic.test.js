@@ -93,7 +93,7 @@ test('prompt fills the template', () => {
   const p = buildPrompt({ subject: 'language', known: 'English', learning: 'Dutch', front: 'English', back: 'Dutch',
     frontHint: 'a phrase in English', backHint: 'the same in Dutch', count: 20, level: 'Beginner', alternatives: true });
   assert.match(p, /Make 20 flashcards for learning Dutch for someone who speaks English/);
-  assert.match(p, /first row is exactly: English,Dutch/);
+  assert.match(p, /header row is exactly: \| English \| Dutch \|/);
   assert.match(p, /answer one\|answer two/);
 });
 
@@ -148,4 +148,53 @@ test('clock cells', () => {
   assert.deepEqual(clockTime('clock 12:00'), { h: 0, m: 0 });
   assert.equal(clockTime('6:30'), null);
   assert.equal(clockTime('clock 6:99'), null);
+});
+
+test('pasted cards with commas are never cut: rejoined or flagged for a check', async () => {
+  const { parseLooseTable } = await import('./csv.js');
+  // The bug: an AI forgets the quotes and "Yes, here it is." used to become Yes → "here it is."
+  let d = parseLooseTable('English,Portuguese\nYes, here it is.,Sim, aqui está.\nThank you,Obrigado\nHello, Paul,Olá Paulo');
+  assert.deepEqual(d.cards[0], { front: 'Yes, here it is.', back: 'Sim, aqui está.' });
+  assert.deepEqual(d.cards[1], { front: 'Thank you', back: 'Obrigado' });
+  assert.equal(d.cards[2].front + d.cards[2].back, 'HelloPaul, Olá Paulo'); // no word lost
+  assert.deepEqual(d.check.map((c) => c.index), [0, 2]);
+  assert.equal(d.check[0].original, 'Yes, here it is.,Sim, aqui está.');
+  // Quoted CSV still works and needs no check
+  d = parseLooseTable('English,Portuguese\n"Yes, here it is.","Sim, aqui está."\n"Is it ""free""?","É ""grátis""?"');
+  assert.deepEqual(d.cards, [{ front: 'Yes, here it is.', back: 'Sim, aqui está.' }, { front: 'Is it "free"?', back: 'É "grátis"?' }]);
+  assert.equal(d.check.length, 0);
+  // The new table format: commas, question marks and alternatives
+  d = parseLooseTable('```\n| English | Portuguese |\n|---|---|\n| Yes, here it is. | Sim, aqui está. |\n| How long, roughly? | Quanto tempo, mais ou menos? |\n| Thanks | Obrigado|Valeu |\n| Hi | Olá | Oi |\n```');
+  assert.deepEqual(d.cards.slice(0, 3), [
+    { front: 'Yes, here it is.', back: 'Sim, aqui está.' },
+    { front: 'How long, roughly?', back: 'Quanto tempo, mais ou menos?' },
+    { front: 'Thanks', back: 'Obrigado|Valeu' }]);
+  assert.deepEqual(d.cards[3], { front: 'Hi', back: 'Olá|Oi' }); // alternatives written with spaces
+  assert.deepEqual(d.check.map((c) => c.index), [3]);
+  // A table copied from the chat window arrives as tabs
+  d = parseLooseTable('English\tPortuguese\nYes, here it is.\tSim, aqui está.');
+  assert.deepEqual(d.cards, [{ front: 'Yes, here it is.', back: 'Sim, aqui está.' }]);
+});
+
+test('Google Sheets keep ignoring extra columns (notes), unchanged', async () => {
+  const { parseCSV, rowsToDeck } = await import('./csv.js');
+  const d = rowsToDeck(parseCSV('English,Dutch,Notes\nHello,Hallo,greeting'));
+  assert.deepEqual(d.cards, [{ front: 'Hello', back: 'Hallo' }]);
+});
+
+test('audio: the best voice for the language, never a novelty or English one', async () => {
+  const { pickVoice, inferLang } = await import('./speech.js');
+  const V = (name, lang, localService = true) => ({ name, lang, localService });
+  const mac = [V('Albert', 'en-US'), V('Samantha', 'en-US'), V('Eddy (Italian (Italy))', 'it-IT'), V('Grandma (Italian (Italy))', 'it-IT'),
+    V('Alice', 'it-IT'), V('Google italiano', 'it-IT', false), V('Rocko (Portuguese (Brazil))', 'pt-BR'), V('Luciana', 'pt-BR')];
+  assert.equal(pickVoice(mac, 'it-IT').name, 'Google italiano');
+  assert.equal(pickVoice(mac.filter((v) => !/Google/.test(v.name)), 'it-IT').name, 'Alice');
+  assert.equal(pickVoice(mac, 'pt-BR').name, 'Luciana');
+  assert.equal(pickVoice([V('Alice (Enhanced)', 'it_IT'), V('Eddy', 'it_IT')], 'it-IT').name, 'Alice (Enhanced)'); // Android-style codes
+  assert.equal(pickVoice(mac, 'ja-JP'), null);   // no Japanese voice: never fall back to English
+  assert.equal(pickVoice([], 'it-IT'), null);    // list not loaded yet
+  assert.equal(inferLang('Italian'), 'it-IT');
+  assert.equal(inferLang('Japanese'), 'ja-JP');
+  assert.equal(inferLang('Swedish'), 'sv-SE');
+  assert.equal(inferLang('Nederlands'), 'nl-NL');
 });

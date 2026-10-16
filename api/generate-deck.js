@@ -79,6 +79,15 @@ export function cleanSpec(input) {
   };
 }
 
+/** "Try this card again": the card to replace and the deck's other fronts, cut short. */
+export function cleanReplace(r) {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return null;
+  const front = clip(r.front, 200); const back = clip(r.back, 200);
+  if (!front && !back) return null;
+  const avoid = (Array.isArray(r.avoid) ? r.avoid : []).slice(0, 100).map((f) => clip(f, 80)).filter(Boolean);
+  return { front, back, avoid };
+}
+
 /** Cards from the AI, checked: two short sides, no empty or repeated fronts, the size asked for. */
 export function cleanCards(list, count) {
   const seen = new Set();
@@ -156,6 +165,37 @@ async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
 
   if (!enabled) return res.status(503).json({ error: 'not_available' });
+
+  // Bad JSON is a 400, not a crash
+  let body;
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {}); } catch { return res.status(400).json({ error: 'bad_request' }); }
+  if (!body || typeof body !== 'object' || (body.spec != null && typeof body.spec !== 'object')) return res.status(400).json({ error: 'bad_request' });
+
+  // "Try this card again": one card, not counted as a deck, for someone refining a deck made this month
+  const replace = cleanReplace(body.replace);
+  if (body.replace != null) {
+    if (!replace) return res.status(400).json({ error: 'bad_request' });
+    if (!unlimited && (used ?? 0) < 1) return res.status(429).json({ error: 'limit', limit: LIMIT, left });
+    const burstOne = await hitLimit('ai_card', who.token);
+    if (!burstOne.ok) {
+      res.setHeader('Retry-After', String(burstOne.retry_after || 60));
+      return res.status(429).json({ error: 'rate', retry_after: burstOne.retry_after || 60 });
+    }
+    const spec = { ...cleanSpec(body.spec), count: 1, replace: { front: replace.front, back: replace.back }, avoid: replace.avoid };
+    try {
+      const preview = !AI_KEY;
+      const n = Date.now() % 1000; // pretend cards on test builds still need a new front each time
+      const raw = preview ? [{ front: `${spec.front} example ${n}`, back: `${spec.back} example ${n}` }] : await askClaude(spec);
+      const avoidSet = new Set([...replace.avoid, replace.front].map((f) => f.toLowerCase()));
+      const card = cleanCards(raw, 5).find((c) => !avoidSet.has(c.front.toLowerCase()));
+      if (!card) return res.status(502).json({ error: 'empty', requestId: req.requestId });
+      return res.status(200).json({ card, preview });
+    } catch (err) {
+      logEvent('warn', 'generate-deck', req.requestId, { error: 'ai_failed', message: err?.message || '' });
+      return res.status(502).json({ error: 'ai_failed', requestId: req.requestId });
+    }
+  }
+
   if (!unlimited && left <= 0) return res.status(429).json({ error: 'limit', limit: LIMIT, left: 0 });
   // A few AI decks a minute at most, even for unlimited accounts (each one costs money)
   const burst = await hitLimit('ai', who.token);
@@ -164,10 +204,7 @@ async function handler(req, res) {
     return res.status(429).json({ error: 'rate', retry_after: burst.retry_after || 60 });
   }
 
-  // Only the builder's known choices are used (extra fields are dropped); bad JSON is a 400, not a crash
-  let body;
-  try { body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {}); } catch { return res.status(400).json({ error: 'bad_request' }); }
-  if (!body || typeof body !== 'object' || (body.spec != null && typeof body.spec !== 'object')) return res.status(400).json({ error: 'bad_request' });
+  // Only the builder's known choices are used (extra fields are dropped)
   const spec = cleanSpec(body.spec);
   try {
     const preview = !AI_KEY;

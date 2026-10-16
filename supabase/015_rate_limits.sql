@@ -29,6 +29,7 @@ begin
   case bucket
     when 'ai'    then max_hits := 3;  win := interval '1 minute';   -- making AI decks (costs money)
     when 'sheet' then max_hits := 30; win := interval '1 minute';   -- looking up Google Sheet names
+    when 'ai_card' then max_hits := 10; win := interval '1 minute';  -- "Try this card again" (one card each)
     else return jsonb_build_object('ok', false, 'reason', 'unknown_bucket');
   end case;
   -- One person's requests wait for each other here, so parallel requests can't slip past the count

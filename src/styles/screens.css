@@ -700,26 +700,26 @@
   line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-title);
 }
 
-/* The three ways to make a deck: two cards side by side, the template under them */
-.create-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); padding: 0 var(--gutter); }
+/* The three ways to make a deck: quick-action tiles, three across like an app's shortcuts.
+   Phones show the icon and a short name; wider screens add one line of explanation. */
+.create-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 0 var(--gutter); }
 .create-card {
-  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);
-  min-height: 168px; padding: var(--space-4);
-  border: 0; border-radius: var(--radius-deck);
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: var(--space-4);
+  min-height: 124px; padding: 14px;
+  border: 0; border-radius: 22px;
   background: var(--card-bg); color: var(--text-primary);
   box-shadow: var(--shadow-soft-card);
   text-align: left; text-decoration: none; cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
 }
-.create-card:active { transform: scale(0.98); }
-.create-card__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--ink); margin-bottom: var(--space-2); flex: none; }
+.create-card:active { transform: scale(0.96); }
+.create-card__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--ink); flex: none; }
 .create-card__icon .icon { width: 24px; height: 24px; }
-.create-card__title { font-size: var(--font-size-button); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); letter-spacing: -0.01em; }
-.create-card__hint { font-size: var(--font-size-caption); line-height: 1.35; color: var(--text-secondary); }
-.create-card--wide { grid-column: 1 / -1; flex-direction: row; align-items: flex-start; gap: var(--space-4); min-height: 0; }
-.create-card--wide .create-card__icon { margin-bottom: 0; }
-.create-card__text { display: flex; flex-direction: column; gap: var(--space-1); flex: 1; min-width: 0; }
-.create-card__go { width: 20px; height: 20px; color: var(--text-tertiary); flex: none; margin-top: 12px; }
+.create-card__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.create-card__title { font-size: 15px; font-weight: var(--font-weight-semibold); line-height: 1.25; letter-spacing: -0.01em; }
+.create-card__hint { display: none; font-size: var(--font-size-caption); line-height: 1.35; color: var(--text-secondary); }
+@media (hover: hover) { .create-card:hover { box-shadow: var(--shadow-raised); } }
 
 /* Sideways rows: Continue learning, sample decks */
 .hub__row {
@@ -814,10 +814,10 @@
 :root[data-theme="dark"] .tabbar__tabs { box-shadow: var(--shadow-raised), 0 0 0 0.5px rgb(255 255 255 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.06); }
 
 @media (min-width: 720px) {
-  .create-grid { grid-template-columns: 1fr 1fr 1fr; }
-  .create-card--wide { grid-column: auto; flex-direction: column; align-items: flex-start; min-height: 168px; gap: var(--space-2); }
-  .create-card--wide .create-card__icon { margin-bottom: var(--space-2); }
-  .create-card--wide .create-card__go { display: none; }
+  .create-grid { gap: var(--space-3); }
+  .create-card { min-height: 156px; padding: var(--space-4); border-radius: var(--radius-deck); }
+  .create-card__title { font-size: var(--font-size-button); }
+  .create-card__hint { display: block; }
   .guides { grid-template-columns: 1fr 1fr; }
   .tabbar { max-width: var(--home-max); }
 }

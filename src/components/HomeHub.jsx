@@ -63,21 +63,24 @@ export function HomeOverview({ decks, colorMode, progressByDeck, dueByDeck, onAi
         <div className="create-grid">
           <button type="button" className="create-card" onClick={() => { homeAction('create_ai'); onAi(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-purple)' }}><Icon name="sparkle" /></span>
-            <span className="create-card__title">Create a new deck with AI</span>
-            <span className="create-card__hint">Say what you want to learn. Your AI writes the cards.</span>
+            <span className="create-card__text">
+              <span className="create-card__title">Create with AI</span>
+              <span className="create-card__hint">Say what you want to learn and get the cards.</span>
+            </span>
           </button>
           <button type="button" className="create-card" onClick={() => { homeAction('create_sheet'); onImport(); }}>
             <span className="create-card__icon" style={{ background: 'var(--deck-green)' }}><Icon name="sheet" /></span>
-            <span className="create-card__title">Import from Google Sheets</span>
-            <span className="create-card__hint">Paste the link to a sheet with two columns.</span>
+            <span className="create-card__text">
+              <span className="create-card__title">Import a Sheet</span>
+              <span className="create-card__hint">Paste the link to a Google Sheet with two columns.</span>
+            </span>
           </button>
-          <a className="create-card create-card--wide" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
+          <a className="create-card" href={TEMPLATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => homeAction('template')}>
             <span className="create-card__icon" style={{ background: 'var(--deck-yellow)' }}><Icon name="template" /></span>
             <span className="create-card__text">
-              <span className="create-card__title">Start from a Google Sheet template</span>
-              <span className="create-card__hint">Make a copy, fill in two columns, then import it.</span>
+              <span className="create-card__title">Use a template</span>
+              <span className="create-card__hint">Copy our Google Sheet, fill it in, then import it.</span>
             </span>
-            <Icon name="arrow" className="create-card__go" />
           </a>
         </div>
       </section>

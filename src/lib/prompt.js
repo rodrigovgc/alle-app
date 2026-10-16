@@ -49,7 +49,7 @@ export function buildPrompt(v) {
   const a = v.front.trim();
   const b = v.back.trim();
   const altRule = v.alternatives
-    ? `- If more than one answer is right for "${b}", put them all in the same cell separated by a vertical bar, like: answer one|answer two`
+    ? `- If more than one answer is right for "${b}", put them all in the same cell separated by a vertical bar with no spaces, like: answer one|answer two`
     : `- Give exactly one answer in "${b}".`;
 
   return [
@@ -60,17 +60,17 @@ export function buildPrompt(v) {
     `- Front ("${a}"): ${v.frontHint || 'the prompt'}.`,
     `- Back ("${b}"): ${v.backHint || 'the answer'}. Keep it short enough to type from memory.`,
     '',
-    'Reply with only a CSV inside one code block, and nothing else:',
-    `- The first row is exactly: ${csvCell(a)},${csvCell(b)}`,
-    '- Then one flashcard per row, exactly two columns.',
-    '- Wrap a cell in double quotes if it contains a comma.',
+    'Reply with only a two-column Markdown table inside one code block, and nothing else:',
+    `- The header row is exactly: | ${tableCell(a)} | ${tableCell(b)} |`,
+    '- Then one flashcard per row, with " | " between the two sides. Commas and question marks are fine inside a side.',
+    '- Example row: | first side, with a comma | second side, also with a comma |',
     altRule,
     '- No numbering, no explanations, no repeated fronts.',
     '- Check that every answer is correct.',
   ].join('\n');
 }
 
-const csvCell = (s) => (/[",]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
+const tableCell = (s) => s.replace(/\|/g, '/');
 
 /** Starting values for the front/back step when a subject is chosen. */
 export function presetFor(subject, v, index = 0) {
@@ -105,6 +105,11 @@ export function buildAppPrompt(v) {
       : `- Give exactly one answer on the back.`,
     '- No numbering, no explanations, no repeated fronts.',
     '- Check that every answer is correct.',
+    ...(v.replace ? [
+      '',
+      `This card from the deck may be wrong or unhelpful: "${v.replace.front}" → "${v.replace.back}". Write one better card to replace it.`,
+      ...(v.avoid?.length ? [`Do not repeat any of these fronts: ${v.avoid.map((f) => `"${f}"`).join(', ')}.`] : []),
+    ] : []),
     '',
     'Save the flashcards with the save_flashcards tool.',
   ].join('\n');

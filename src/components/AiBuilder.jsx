@@ -9,7 +9,7 @@ import { DeckImportError, parseLooseTable } from '../lib/csv.js';
 import { inferLang } from '../lib/speech.js';
 import { track } from '../lib/analytics.js';
 import { imageSrc, needsFrame } from '../lib/media.js';
-import { aiAllowance, generateCards } from '../lib/aiDeck.js';
+import { aiAllowance, generateCards, retryCard } from '../lib/aiDeck.js';
 import {
   LEVELS, SIZES, SUBJECTS, buildPrompt, describeTopic, presetFor,
 } from '../lib/prompt.js';
@@ -321,8 +321,23 @@ function FinishStep(props) {
     : <AppAiFinish {...props} onUseOwn={() => setMode('own')} />;
 }
 
+/** "1 November": when the free AI decks come back (the count starts again each calendar month, UTC). */
+export function resetDay(now = new Date()) {
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  return next.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+}
+
+/** "Writing 20 Italian cards for a beginner…": what's being made, in the builder's own words. */
+export function loadingText(v) {
+  const level = (v.level || '').toLowerCase();
+  const who = level === 'intermediate' ? 'an intermediate learner' : level === 'advanced' ? 'an advanced learner' : 'a beginner';
+  if (v.subject === 'language' && v.learning) return `Writing ${v.count} ${v.learning} cards for ${who}…`;
+  const topic = (v.topic || '').trim();
+  return topic ? `Writing ${v.count} cards about ${topic.length > 40 ? `${topic.slice(0, 40)}…` : topic}…` : `Writing ${v.count} cards…`;
+}
+
 const AI_ERRORS = {
-  limit: 'You’ve used this month’s free AI decks. You can still use your own AI.',
+  limit: `You’ve used this month’s free AI decks. They come back on ${resetDay()}.`,
   not_available: 'Alle’s AI isn’t switched on yet. Use your own AI for now.',
   signed_out: 'Sign in again to use Alle’s AI.',
   offline: 'You seem to be offline. Check your connection and try again.',
@@ -335,9 +350,28 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
   const [state, setState] = useState({ status: 'idle', cards: null, error: '', preview: false });
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [retrying, setRetrying] = useState(null); // index of the card being made again
+  const [wantMore, setWantMore] = useState(false);
   useEffect(() => { let alive = true; aiAllowance().then((a) => alive && setAllow(a)); return () => { alive = false; }; }, []);
 
   const spec = { ...v, front: v.front, back: v.back };
+  async function again(i) {
+    if (retrying != null) return;
+    setRetrying(i); setState((s) => ({ ...s, error: '' }));
+    try {
+      const card = state.cards[i];
+      const avoid = state.cards.filter((_, j) => j !== i).map((c) => c.front);
+      const r = await retryCard(spec, card, avoid);
+      setState((s) => ({ ...s, cards: s.cards.map((c, j) => (j === i ? r.card : c)) }));
+      track('ai_card_retried', { subject: v.subject });
+    } catch (e) {
+      setState((s) => ({ ...s, error: e.code === 'rate' ? AI_ERRORS.rate : 'That card couldn’t be made again. Try once more, or fix it by hand.' }));
+    } finally { setRetrying(null); }
+  }
+  function askForMore() {
+    setWantMore(true);
+    track('ai_more_wanted', { subject: v.subject });
+  }
   async function make() {
     setState((s) => ({ ...s, status: 'loading', error: '' }));
     try {
@@ -375,7 +409,7 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
   const out = allow && (!allow.enabled || allow.left <= 0);
   const allowText = !allow ? '' : !allow.enabled ? AI_ERRORS.not_available
     : allow.left <= 0 ? AI_ERRORS.limit
-    : allow.left >= 999 ? '' : `${allow.left} of ${allow.limit} free AI ${allow.limit === 1 ? 'deck' : 'decks'} left this month.`;
+    : allow.left >= 999 ? '' : `${allow.left} of ${allow.limit} free AI ${allow.limit === 1 ? 'deck' : 'decks'} left this month. They come back on ${resetDay()}.`;
 
   return (
     <>
@@ -385,11 +419,14 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
       {state.status !== 'done' && (
         <div className="ai-make">
           {state.status === 'loading' ? (
-            <div className="ai-make__loading" role="status"><span className="mini-spinner" aria-hidden="true" />Writing your cards…</div>
+            <div className="ai-make__loading" role="status"><span className="mini-spinner" aria-hidden="true" />{loadingText(v)}</div>
           ) : (
             <Button icon="sparkle" onClick={make} disabled={out}>Create my deck</Button>
           )}
           {allowText && state.status !== 'loading' && <p className="field__hint">{allowText}</p>}
+          {out && allow?.enabled && state.status !== 'loading' && (wantMore
+            ? <p className="field__hint ai-more__thanks" role="status">Thanks! That helps us decide. For now you can still use your own AI below.</p>
+            : <button type="button" className="text-btn ai-more" onClick={askForMore}>Want more AI decks? Let us know</button>)}
         </div>
       )}
       {state.error && <p className="form-error" role="alert">{state.error}</p>}
@@ -403,11 +440,16 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
               <li key={i} className="ai-cards__row">
                 <textarea className="ai-cards__input" rows={1} value={c.front} aria-label={`Card ${i + 1}, ${v.front}`} onChange={(e) => editCard(i, { front: e.target.value })} />
                 <textarea className="ai-cards__input" rows={1} value={c.back} aria-label={`Card ${i + 1}, ${v.back}`} onChange={(e) => editCard(i, { back: e.target.value })} />
-                <button type="button" className="ai-cards__remove" aria-label={`Remove card ${i + 1}`} onClick={() => removeCard(i)}><Icon name="close" /></button>
+                <span className="ai-cards__tools">
+                  <button type="button" className="ai-cards__remove" aria-label={`Try card ${i + 1} again`} title="Try this card again" disabled={retrying != null} onClick={() => again(i)}>
+                    {retrying === i ? <span className="mini-spinner" aria-hidden="true" /> : <Icon name="reset" />}
+                  </button>
+                  <button type="button" className="ai-cards__remove" aria-label={`Remove card ${i + 1}`} title="Remove this card" onClick={() => removeCard(i)}><Icon name="close" /></button>
+                </span>
               </li>
             ))}
           </ol>
-          <p className="field__hint">Check the cards. AI can make mistakes, and you can fix any card here.</p>
+          <p className="field__hint">Made by AI, so it can make mistakes. Fix any card here, or tap <Icon name="reset" className="inline-icon" /> to try it again.</p>
           {!out && <button type="button" className="text-btn ai-cards__again" onClick={make} disabled={state.status === 'loading'}>Make different cards</button>}
         </div>
       )}
@@ -416,7 +458,7 @@ function AppAiFinish({ v, set, onCreate, onBack, onUseOwn }) {
       <SheetActions>
         {state.status === 'done' && <Button onClick={add} disabled={!ready.length || busy}>{busy ? 'Adding…' : 'Add deck'}</Button>}
         {onBack && <Button variant="secondary" onClick={onBack}>Back</Button>}
-        <button type="button" className="text-btn" onClick={onUseOwn}>Use your own AI instead</button>
+        <button type="button" className={`text-btn ${out ? '' : 'text-btn--quiet'}`} onClick={onUseOwn}>{out ? 'Use your own AI' : 'Prefer another AI chat? Use your own'}</button>
       </SheetActions>
     </>
   );
@@ -430,6 +472,8 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [name, setName] = useState(() => v.name || (v.subject ? defaultDeckName(v) : ''));
+  const [fixes, setFixes] = useState({}); // card index → { front, back } or { removed: true }
+  useEffect(() => { setFixes({}); }, [raw]);
 
   async function copy() {
     try { await navigator.clipboard.writeText(prompt); } catch {
@@ -451,8 +495,14 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
     }
   }, [raw]);
 
+  // The pasted cards with the person's fixes to the ones Alle flagged
+  const cards = useMemo(() => (parsed?.deck
+    ? parsed.deck.cards.map((c, i) => (fixes[i] ? { ...c, ...fixes[i] } : c)).filter((c) => !c.removed && c.front.trim() && c.back.trim())
+    : []), [parsed, fixes]);
+  const fix = (i, patch) => setFixes((f) => ({ ...f, [i]: { ...(f[i] || {}), ...patch } }));
+
   async function create() {
-    if (!parsed?.deck) return;
+    if (!parsed?.deck || !cards.length) return;
     setBusy(true); setSaveError('');
     try {
       const d = parsed.deck;
@@ -463,7 +513,7 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
         front_label: d.frontLabel,
         back_label: d.backLabel,
         lang: inferLang(v.subject === 'language' ? v.learning : d.backLabel),
-        cards: d.cards,
+        cards: cards.map((c) => ({ front: c.front.trim(), back: c.back.trim() })),
       });
     } catch (e) {
       setSaveError(e.message);
@@ -507,7 +557,7 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
         rows={4}
         value={raw}
         aria-label="The AI’s reply"
-        placeholder={pasteOnly ? 'Paste the reply here' : `${v.front || 'Front'},${v.back || 'Back'}\n…`}
+        placeholder={pasteOnly ? 'Paste the reply here' : `| ${v.front || 'Front'} | ${v.back || 'Back'} |\n…`}
         autoCapitalize="off"
         autoCorrect="off"
         spellCheck={false}
@@ -517,9 +567,9 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
       {parsed?.deck && (
         <div className="preview-list" aria-label="Preview" data-hj-suppress>
           <p className="preview-list__head">
-            {parsed.deck.cards.length} cards · {parsed.deck.frontLabel} → {parsed.deck.backLabel}
+            {cards.length} cards · {parsed.deck.frontLabel} → {parsed.deck.backLabel}
           </p>
-          {parsed.deck.cards.slice(0, 4).map((c, i) => (
+          {cards.slice(0, 4).map((c, i) => (
             <div key={i} className="preview-list__row">
               {imageSrc(c.front)
                 ? <img className={`preview-list__img ${needsFrame(c.front) ? 'is-framed' : ''}`} src={imageSrc(c.front)} alt={c.front} referrerPolicy="no-referrer" />
@@ -527,7 +577,28 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
               <span>{c.back.replace(/\|/g, ' / ')}</span>
             </div>
           ))}
-          <p className="field__hint">Check a few answers. AI can make mistakes.</p>
+          <p className="field__hint">Made by AI: check a few answers, it can make mistakes.</p>
+        </div>
+      )}
+      {parsed?.deck?.check?.length > 0 && (
+        <div className="ai-cards ai-check" aria-label="Cards to check" data-hj-suppress>
+          <p className="preview-list__head">Check {parsed.deck.check.length === 1 ? 'this card' : `these ${parsed.deck.check.length} cards`}</p>
+          <p className="field__hint">They had extra commas, so Alle had to guess where the answer starts. Fix them here, or remove them.</p>
+          <ol className="ai-cards__list">
+            {parsed.deck.check.filter(({ index }) => !fixes[index]?.removed).map(({ index, original }) => {
+              const c = { ...parsed.deck.cards[index], ...(fixes[index] || {}) };
+              return (
+                <li key={index} className="ai-check__item">
+                  <p className="ai-check__original">Pasted: <span>{original}</span></p>
+                  <div className="ai-cards__row">
+                    <textarea className="ai-cards__input" rows={1} value={c.front} aria-label={`${parsed.deck.frontLabel}, card to check`} onChange={(e) => fix(index, { front: e.target.value })} />
+                    <textarea className="ai-cards__input" rows={1} value={c.back} aria-label={`${parsed.deck.backLabel}, card to check`} onChange={(e) => fix(index, { back: e.target.value })} />
+                    <button type="button" className="ai-cards__remove" aria-label="Remove this card" onClick={() => fix(index, { removed: true })}><Icon name="close" /></button>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       )}
       {pasteOnly && parsed?.deck && (
@@ -537,7 +608,7 @@ function OwnAiFinish({ v, set, pasteOnly, onCreate, onBack, onUseApp }) {
       )}
       {saveError && <p className="form-error" role="alert">{saveError}</p>}
       <SheetActions>
-        <Button onClick={create} disabled={!parsed?.deck || busy}>{busy ? 'Creating…' : 'Create deck'}</Button>
+        <Button onClick={create} disabled={!parsed?.deck || !cards.length || busy}>{busy ? 'Creating…' : 'Create deck'}</Button>
         {onBack && <Button variant="secondary" onClick={onBack}>Back</Button>}
         {onUseApp && <button type="button" className="text-btn" onClick={onUseApp}>Let Alle make the cards</button>}
       </SheetActions>
