@@ -5,6 +5,7 @@ import { Tag } from '../components/Tag.jsx';
 import { diffAnswer, evaluate } from '../lib/evaluate.js';
 import { alternatives, displayLines } from '../lib/csv.js';
 import { canSpeak, speak } from '../lib/speech.js';
+import { warmVoice } from '../lib/voices.js';
 import { useVisualViewport } from '../lib/useViewport.js';
 import { useFitText } from '../lib/useFitText.js';
 import { FixUp } from '../components/FixUp.jsx';
@@ -419,6 +420,8 @@ function FrontFace({ card, interactive, canSkip, typed, setTyped, inputRef, onFo
 function BackFace({ card, typed, result }) {
   const bodyRef = useRef(null);
   const fit = useFitText(bodyRef, [card.key, result.match, typed]);
+
+  useEffect(() => { warmVoice(card.lang); }, [card.lang]); // natural voice ready before the speaker is tapped
 
   const answerText = result.match.replace(/\s*•\s*/g, '\n');
   const hasTyped = result.verdict !== 'correct' && !result.skipped && typed.trim();

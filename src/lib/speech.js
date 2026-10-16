@@ -1,4 +1,5 @@
 import { alternatives } from './csv.js';
+import { voiceChoice, isReady, speakNatural, stopNatural } from './voices.js';
 
 export const LANGUAGES = [
   { code: 'nl-NL', label: 'Dutch' },
@@ -77,8 +78,19 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
 export function speak(backCell, lang = 'en-US') {
-  if (!canSpeak()) return;
   const text = alternatives(backCell)[0].replace(/•/g, '. ');
+  const natural = voiceChoice(lang);
+  if (natural !== 'phone' && isReady(natural)) {
+    if (canSpeak()) window.speechSynthesis.cancel();
+    speakNatural(text, natural).catch(() => speakPhone(text, lang)); // not on this device any more, or failed
+    return;
+  }
+  speakPhone(text, lang);
+}
+
+export function speakPhone(text, lang = 'en-US') {
+  if (!canSpeak()) return;
+  stopNatural();
   const synth = window.speechSynthesis;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);

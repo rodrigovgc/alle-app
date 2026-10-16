@@ -21,6 +21,7 @@ import { answerMode } from '../lib/srs.js';
 import { fetchSheetName, fetchDeckFromUrl } from '../lib/csv.js';
 import { rawError } from '../lib/api.js';
 import { LANGUAGES, inferLang } from '../lib/speech.js';
+import { VoicePicker } from '../components/VoicePicker.jsx';
 import { DECK_COLORS, DECK_COLOR_LABELS, DECK_SHAPES, NO_COLOR, SPRING, deckColorVars, deckShape, pickDeckLook, tokenNumber } from '../styles/tokens.js';
 
 const HELP_URL = 'https://allecards.app/help';
@@ -834,6 +835,7 @@ function CoverForm({ deck, onSave, onDone }) {
           {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
       </Field>
+      <VoicePicker lang={lang} />
       {error && <p className="form-error" role="alert">{error}</p>}
       <SheetActions>
         <Button onClick={onDone}>Done</Button>
