@@ -986,5 +986,7 @@ select.input { background-image: none; }
 .ai-more__thanks { text-align: center; }
 .text-btn--quiet { font-size: var(--font-size-small); color: var(--text-secondary); font-weight: var(--font-weight-regular); }
 .ai-cards__remove .mini-spinner { --deck-ink: var(--text-primary); }
-.ai-more { align-self: flex-start; padding-left: 0; }
-.ai-more__thanks { text-align: left; }
+.ai-more { align-self: center; }
+.ai-more__thanks { text-align: center; }
+/* The free-deck count sits centred under Create my deck */
+.ai-make > .field__hint { text-align: center; }
