@@ -3,7 +3,7 @@ import { Icon } from './Icon.jsx';
 import { LANGUAGES, speakPhone } from '../lib/speech.js';
 import {
   naturalVoices, voiceChoice, setVoiceChoice, isReady, downloadVoice, removeVoice,
-  downloadState, onVoicesChange, previewVoice,
+  downloadState, onVoicesChange, previewVoice, stopNatural,
 } from '../lib/voices.js';
 import { track } from '../lib/analytics.js';
 
@@ -22,6 +22,11 @@ const mb = (n) => Math.round(n / 1e6);
 export function VoicePicker({ lang }) {
   const [, refresh] = useReducer((n) => n + 1, 0);
   useEffect(() => onVoicesChange(refresh), []);
+  // Closing deck settings stops any sample that's still playing
+  useEffect(() => () => {
+    stopNatural();
+    try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
+  }, []);
   const voices = naturalVoices(lang);
   if (!voices.length) return null;
 
