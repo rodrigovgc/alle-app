@@ -15,7 +15,7 @@ const SETS = [
   },
   {
     lang: 'nl-NL', label: 'Dutch',
-    voices: [['nl_NL-mls-medium', 'Netherlands (medium)'], ['nl_BE-nathalie-medium', 'Nathalie, Belgium (medium)']],
+    voices: [['nl_BE-nathalie-medium', 'Nathalie, Belgium (medium)'], ['nl_BE-rdh-medium', 'Rdh, Belgium (medium)'], ['nl_NL-mls_5809-low', 'Netherlands 2 (small)'], ['nl_NL-mls-medium', 'Netherlands (medium)']],
     phrases: ['Goedemorgen, hoe gaat het?', 'Ik wil graag een kopje koffie.', 'Waar is het station?'],
   },
   {
