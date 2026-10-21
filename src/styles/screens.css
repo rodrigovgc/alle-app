@@ -781,10 +781,10 @@
 .guides { display: grid; gap: var(--space-5); padding: 0 var(--gutter); }
 .guide-card { display: flex; flex-direction: column; gap: var(--space-3); color: var(--text-primary); text-decoration: none; }
 .guide-card__stage {
-  position: relative; display: grid; place-items: center; height: 240px; overflow: hidden;
+  position: relative; display: grid; place-items: center; height: 330px; overflow: hidden;
   border-radius: var(--radius-deck); background: var(--start-tile-bg); border: 1px solid var(--start-tile-border);
 }
-.guide-card__scene { display: block; transform: scale(0.8); }
+.guide-card__scene { display: block; transform: scale(0.85); }
 .guide-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .guide-card__title { font-size: var(--font-size-button); font-weight: var(--font-weight-medium); line-height: var(--line-height-tight); }
 .guide-card__share { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--text-primary); cursor: pointer; }
