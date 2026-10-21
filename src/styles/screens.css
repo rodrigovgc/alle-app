@@ -974,3 +974,8 @@
 :root[data-theme="dark"] .sample-tile { --deck-shadow-rest: rgb(0 0 0 / 0.45); }
 
 
+
+/* Screen changes (Home ↔ study ↔ done): a short cross-fade of the whole page
+   through the browser's View Transitions, instead of fading in from blank. */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 160ms; animation-timing-function: ease-out; }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { supabase, isConfigured } from './lib/supabase.js';
 import * as api from './lib/api.js';
 import { fetchDeckFromUrl } from './lib/csv.js';
@@ -21,7 +22,6 @@ import { setDeckFavicon } from './lib/favicon.js';
 import { Sheet, SheetActions } from './components/Sheet.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { Button } from './components/Button.jsx';
-import { motion } from 'framer-motion';
 
 
 // Where a new deck came from, as stored on the deck (for the dashboard).
@@ -82,7 +82,15 @@ function Library({ user, onUser }) {
   const sortGroups = (gs) => [...gs].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   const [progress, setProgress] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [screen, setScreen] = useState({ name: 'home' });
+  const [screen, setScreenNow] = useState({ name: 'home' });
+  // Screen changes cross-fade with the browser's View Transitions: the old
+  // screen stays painted until the new one is ready, so nothing blinks. Browsers
+  // without it (or with reduced motion) just swap instantly.
+  const setScreen = useCallback((next) => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) { setScreenNow(next); return; }
+    document.startViewTransition(() => { flushSync(() => setScreenNow(next)); });
+  }, []);
   const [caughtUp, setCaughtUp] = useState(null); // decks to practise anyway
   const [notice, setNotice] = useState('');
   // "✓ Changes saved" after any change that saves on its own (see lib/saved.js)
@@ -541,20 +549,15 @@ function Library({ user, onUser }) {
 
   return (
     <>
-      {/* One screen mounted at a time. It fades in on change; the previous one
-          is never kept around, so finishing a session can't leave two screens
-          fighting (which wedged the Done button). */}
-      <motion.div
-        key={screen.name === 'study' ? `study-${screen.id}` : screen.name}
-        className="screen"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-      >
+      {/* One screen mounted at a time; the change cross-fades through a view
+          transition (see setScreen). The previous screen is never kept around,
+          so finishing a session can't leave two screens fighting (which wedged
+          the Done button). */}
+      <div key={screen.name === 'study' ? `study-${screen.id}` : screen.name} className="screen">
         <ErrorBoundary key={screen.name} onReset={() => setScreen({ name: 'home' })}>
           {view}
         </ErrorBoundary>
-      </motion.div>
+      </div>
 
       <Sheet open={!!caughtUp} onClose={() => setCaughtUp(null)} title="All caught up" variant="dialog">
         <div className="sheet__body">
