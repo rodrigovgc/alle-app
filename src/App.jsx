@@ -17,6 +17,7 @@ import { Onboarding } from './components/Onboarding.jsx';
 import { Home } from './screens/Home.jsx';
 import { Study } from './screens/Study.jsx';
 import { Done } from './screens/Done.jsx';
+import { setDeckFavicon } from './lib/favicon.js';
 import { Sheet, SheetActions } from './components/Sheet.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { Button } from './components/Button.jsx';
@@ -236,6 +237,17 @@ function Library({ user, onUser }) {
 
   const prefs = user.user_metadata || {};
   const colorMode = prefs.color_mode === 'monochrome' ? 'monochrome' : 'colorful';
+
+  // Tab icon takes the colour of the deck being studied (one deck only;
+  // mixed sessions and monochrome keep the normal lime icon).
+  const studyDeckIds = screen.name === 'study' ? [...new Set(screen.cards.map((c) => c.deckId))] : [];
+  const studyColor = colorMode === 'colorful' && studyDeckIds.length === 1
+    ? decks.find((d) => d.id === studyDeckIds[0])?.color ?? null
+    : null;
+  useEffect(() => {
+    setDeckFavicon(studyColor);
+    return () => setDeckFavicon(null);
+  }, [studyColor]);
 
   const load = useCallback(async () => {
     setLoading(true);
