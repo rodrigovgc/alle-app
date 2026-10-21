@@ -16,6 +16,7 @@ import { DESKTOP_QUERY, useMediaQuery } from '../lib/useMediaQuery.js';
  */
 export function Sheet({ open, onClose, title, children, variant = 'page', wide = false }) {
   const reduce = useReducedMotion();
+  const sheetRef = useRef(null);
   const desktop = useMediaQuery(DESKTOP_QUERY);
   useKeyboardInset(open && !desktop);
 
@@ -56,7 +57,12 @@ export function Sheet({ open, onClose, title, children, variant = 'page', wide =
           />
           <div key="frame" className={desktop ? 'popup-frame' : undefined} style={desktop ? undefined : { display: 'contents' }}>
             <motion.section
-              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''} ${wide ? 'sheet--wide' : ''}`}
+              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''} ${wide ? 'sheet--wide' : ''} is-moving`}
+              // Chrome flickers frosted (backdrop-blur) layers while their parent
+              // fades or scales, so they stay solid until the sheet has landed.
+              onAnimationStart={() => sheetRef.current?.classList.add('is-moving')}
+              onAnimationComplete={() => sheetRef.current?.classList.remove('is-moving')}
+              ref={sheetRef}
               role="dialog"
               aria-modal="true"
               aria-label={title}

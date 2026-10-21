@@ -5,6 +5,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   background: var(--page-bg);
+  /* Keep the scrollbar's space even while scrolling is locked (study screen),
+     so the page doesn't jump sideways when a deck opens or closes. */
+  scrollbar-gutter: stable;
 }
 
 body {

@@ -1009,3 +1009,12 @@ select.input { background-image: none; }
 .voice-pick__play { flex-shrink: 0; }
 .voice-pick .field__hint .text-btn { padding: 0 2px; min-height: 0; font-size: inherit; }
 .voice-pick__inline { display: inline; }
+
+/* While a sheet slides, fades or scales in/out, its frosted layers are solid:
+   Chrome can't keep a backdrop blur steady inside a moving, fading parent and
+   flashes it. The blur comes back once the sheet has landed. */
+.sheet.is-moving .sheet__header::before,
+.sheet.is-moving .sheet__actions::before {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: var(--card-bg);
+}
