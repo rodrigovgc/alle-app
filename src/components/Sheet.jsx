@@ -1,4 +1,5 @@
-import { useCallback, useLayoutEffect, useEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { IconButton } from './Button.jsx';
 import { SPRING } from '../styles/tokens.js';
@@ -20,8 +21,26 @@ export function Sheet({ open, onClose, title, children, variant = 'page', wide =
   const desktop = useMediaQuery(DESKTOP_QUERY);
   useKeyboardInset(open && !desktop);
 
-  // Desktop: a centred popup that fades and scales in. Mobile: unchanged.
-  const motionProps = desktop
+  // Desktop (Chrome, Edge, Safari 18+): the popup appears through a View
+  // Transition, a cross-fade of still snapshots. Fading the live popup over the
+  // page made Chrome flicker. The sheet itself then doesn't animate.
+  const viewTransition = desktop && !reduce && typeof document !== 'undefined' && !!document.startViewTransition;
+  const [shown, setShown] = useState(open);
+  useEffect(() => {
+    if (open === shown) return;
+    if (viewTransition) document.startViewTransition(() => { flushSync(() => setShown(open)); });
+    else setShown(open);
+  }, [open, shown, viewTransition]);
+  const visible = viewTransition ? shown : open;
+  // While it closes, keep showing what it last showed (the caller may already
+  // have cleared the data its content needs).
+  const last = useRef({ title, children });
+  if (open) last.current = { title, children };
+  const view = open ? { title, children } : last.current;
+
+  // Desktop without View Transitions: a centred popup that fades and scales in. Mobile: unchanged.
+  const still = { initial: false, animate: { opacity: 1, scale: 1, y: 0 } };
+  const motionProps = viewTransition ? still : desktop
     ? {
         initial: { opacity: 0, scale: reduce ? 1 : 0.96, y: reduce ? 0 : 8 },
         animate: { opacity: 1, scale: 1, y: 0 },
@@ -44,20 +63,20 @@ export function Sheet({ open, onClose, title, children, variant = 'page', wide =
 
   return (
     <AnimatePresence>
-      {open && (
+      {visible && (
         <>
           <motion.div
             key="scrim"
             className="sheet-scrim"
             onClick={onClose}
-            initial={{ opacity: 0 }}
+            initial={viewTransition ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={viewTransition ? undefined : { opacity: 0 }}
             transition={{ duration: 0.25 }}
           />
           <div key="frame" className={desktop ? 'popup-frame' : undefined} style={desktop ? undefined : { display: 'contents' }}>
             <motion.section
-              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''} ${wide ? 'sheet--wide' : ''} is-moving`}
+              className={`sheet sheet--${variant} ${desktop ? 'sheet--popup' : ''} ${wide ? 'sheet--wide' : ''} ${viewTransition ? '' : 'is-moving'}`}
               // Chrome flickers frosted (backdrop-blur) layers while their parent
               // fades or scales, so they stay solid until the sheet has landed.
               onAnimationStart={() => sheetRef.current?.classList.add('is-moving')}
@@ -65,10 +84,10 @@ export function Sheet({ open, onClose, title, children, variant = 'page', wide =
               ref={sheetRef}
               role="dialog"
               aria-modal="true"
-              aria-label={title}
+              aria-label={view.title}
               {...motionProps}
             >
-              <SheetFrame title={title} onClose={onClose}>{children}</SheetFrame>
+              <SheetFrame title={view.title} onClose={onClose}>{view.children}</SheetFrame>
             </motion.section>
           </div>
         </>
