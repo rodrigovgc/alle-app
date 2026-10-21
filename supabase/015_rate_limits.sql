@@ -14,6 +14,7 @@ create table if not exists public.rate_hits (
 create index if not exists rate_hits_lookup on public.rate_hits (user_id, bucket, at);
 alter table public.rate_hits enable row level security;  -- no policies: only the function below touches it
 revoke all on public.rate_hits from anon, authenticated;
+grant all on public.rate_hits to service_role;   -- only hit_limit() (security definer) touches it
 
 -- Counts one use of `bucket` for the signed-in person. Returns {"ok":true,"left":n} or
 -- {"ok":false,"retry_after":seconds}. Limits are fixed here per bucket, so a caller can't

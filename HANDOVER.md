@@ -202,3 +202,19 @@ security fixes, sharing, dashboard) is summarised in the commit history:
 - Env vars (Vercel): `ANTHROPIC_API_KEY` (required to switch it on), optional `AI_MODEL` (default `claude-haiku-5-5`), `AI_MONTHLY_FREE`, `AI_UNLIMITED_EMAILS` (comma list, e.g. the owner).
 - Without a key: test builds return pretend cards; the live app says AI isn't switched on yet. Demo mode makes pretend cards in the browser (`src/lib/aiDeck.js`).
 - Before going live: add a paragraph to the website's privacy page (builder choices are sent to Anthropic to write the cards) and set a monthly spend limit in the Anthropic Console.
+
+
+## New database tables (from 30 Oct 2026)
+
+Supabase no longer gives new tables in `public` API access automatically. Every
+migration that creates a table must also grant it, next to `enable row level
+security`, for example:
+
+```sql
+grant select, insert, update, delete on public.my_table to authenticated;
+grant all on public.my_table to service_role;
+```
+
+Only grant `anon` when signed-out visitors really need the table. Without a
+grant the app gets "permission denied". `supabase/016_explicit_grants.sql` lists
+the access every current table needs.

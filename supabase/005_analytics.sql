@@ -14,6 +14,10 @@ create index if not exists events_user_idx on public.events (user_id, created_at
 
 alter table public.events enable row level security;
 
+-- Explicit API access (Supabase stops granting it automatically for new tables from 30 Oct 2026).
+grant insert on public.events to authenticated;
+grant all on public.events to service_role;
+
 -- Anyone signed in may add their own events; nobody can read raw rows.
 drop policy if exists "insert own events" on public.events;
 create policy "insert own events" on public.events

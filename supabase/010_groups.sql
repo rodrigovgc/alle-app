@@ -12,6 +12,10 @@ create table if not exists public.deck_groups (
 
 alter table public.deck_groups enable row level security;
 
+-- Explicit API access (Supabase stops granting it automatically for new tables from 30 Oct 2026).
+grant select, insert, update, delete on public.deck_groups to authenticated;
+grant all on public.deck_groups to service_role;
+
 drop policy if exists "own groups" on public.deck_groups;
 create policy "own groups" on public.deck_groups
   for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);

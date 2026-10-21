@@ -14,6 +14,10 @@ create index if not exists ai_generations_user_month on public.ai_generations (u
 
 alter table public.ai_generations enable row level security;
 
+-- Explicit API access (Supabase stops granting it automatically for new tables from 30 Oct 2026).
+grant select, insert on public.ai_generations to authenticated;
+grant all on public.ai_generations to service_role;
+
 -- People see and add only their own rows (the server function acts as the signed-in person).
 drop policy if exists "own ai rows: read" on public.ai_generations;
 create policy "own ai rows: read" on public.ai_generations for select using (user_id = auth.uid());

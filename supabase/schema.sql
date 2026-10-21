@@ -38,6 +38,10 @@ create index if not exists progress_due_idx on public.progress (user_id, due_at)
 alter table public.decks    enable row level security;
 alter table public.progress enable row level security;
 
+-- Explicit API access (Supabase stops granting it automatically for new tables from 30 Oct 2026).
+grant select, insert, update, delete on public.decks, public.progress to authenticated;
+grant all on public.decks, public.progress to service_role;
+
 drop policy if exists "own decks" on public.decks;
 create policy "own decks" on public.decks
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
