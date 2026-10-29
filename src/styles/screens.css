@@ -467,7 +467,10 @@
   .study-card__body .study-card__text { max-width: 100%; }
   .study-card__body .study-card__text + .study-card__text { margin-top: calc(var(--space-3) - var(--space-8)); }
   .study-card__input { margin-top: 0; text-align: center; }
-  .study-card__picture-wrap { flex: none; height: var(--size-card-picture); }
+  /* A picture keeps its full size next to the answer field (the field used to take half the card and crop it);
+     only on a very short card does it scale down, never cut off. */
+  .study-card__prompt.has-picture { flex: 0 1 auto; min-height: 0; }
+  .study-card__picture-wrap { flex: 0 1 auto; min-height: 0; height: var(--size-card-picture); }
   .study-card__helper { margin-top: calc(var(--space-2) - var(--space-8)); }
   .study-card__verdict { margin-top: 0; }
 }
